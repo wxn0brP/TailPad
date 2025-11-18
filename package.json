@@ -1,0 +1,44 @@
+{
+	"name": "tail-pad",
+	"version": "0.0.1",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"description": "",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/wxn0brP/TailPad.git"
+	},
+	"homepage": "https://github.com/wxn0brP/TailPad",
+	"author": "wxn0brP",
+	"license": "MIT",
+	"type": "module",
+	"scripts": {
+		"build": "bun run build.ts"
+	},
+	"dependencies": {
+		"@wxn0brp/flanker-dialog": "^0.0.5",
+		"@wxn0brp/flanker-ui": "^0.4.3"
+	},
+	"devDependencies": {
+		"@types/bun": "*",
+		"esbuild": "^0.27.0",
+		"esbuild-style-plugin": "^1.6.3",
+		"typescript": "*",
+		"sass": "^1.94.1"
+	},
+	"files": [
+		"dist"
+	],
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js",
+			"default": "./dist/index.js"
+		},
+		"./*": {
+			"types": "./dist/*.d.ts",
+			"import": "./dist/*.js",
+			"default": "./dist/*.js"
+		}
+	}
+}
