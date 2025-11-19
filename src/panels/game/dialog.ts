@@ -1,3 +1,5 @@
+import { delay } from "@wxn0brp/flanker-ui/utils";
+
 export class DialogEngine {
     constructor(public element: HTMLDivElement, public speed = 25) { }
 
@@ -12,7 +14,9 @@ export class DialogEngine {
         for (const ch of text) {
             if (this._writing !== now) return; // abort
             this.element.innerHTML += ch;
-            await new Promise((resolve) => setTimeout(resolve, this.speed));
+            await delay(this.speed);
         }
+
+        await delay(1500);
     }
 }

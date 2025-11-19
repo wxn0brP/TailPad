@@ -1,4 +1,5 @@
 import { mainScene } from "#panels/game";
+import { watchCheckbox } from "@wxn0brp/flanker-ui/component/helpers";
 
 const panel = qs("#game-controller-panel .panel-content");
 
@@ -21,3 +22,7 @@ sceneIndexInput.addEventListener("input", () => {
 mainScene.lastIndex.subscribe(index => {
     sceneIndexInput.valueAsNumber = index;
 });
+
+watchCheckbox(panel.qi("pause", 1), mainScene.pause);
+mainScene.pause.set(true);
+mainScene.lastIndex.set(-1);

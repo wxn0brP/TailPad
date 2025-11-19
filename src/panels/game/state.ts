@@ -12,7 +12,7 @@ export class GameScene {
 
     sceneConfig: Action[] = [];
     lastIndex = new ReactiveCell(-1);
-    pause = true;
+    pause = new ReactiveCell(true);
 
     constructor(element: HTMLDivElement) {
         this.element = element;

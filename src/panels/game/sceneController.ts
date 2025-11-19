@@ -17,7 +17,7 @@ async function runScene(scene: GameScene, action: Action, index: number) {
     if (!action) return console.error("No action", index, scene);
     switch (action.type) {
         case "text":
-            await waitForEnd(action, typeText, scene, action.text);
+            await waitForEnd(action, () => scene.dialogEngine.write(action.text));
             break;
         case "background":
             scene.setBackground(action.url);
@@ -31,10 +31,6 @@ async function runScene(scene: GameScene, action: Action, index: number) {
     }
 
     if (index === scene.sceneConfig.length - 1) return scene.eventEmitter.emit("scenes-end");
-    if (scene.pause) return scene.eventEmitter.emit("pause", index);
+    if (scene.pause.get()) return scene.eventEmitter.emit("pause", index);
     scene.eventEmitter.emit("run-scene", index + 1);
-}
-
-async function typeText(scene: GameScene, text: string) {
-    await scene.dialogEngine.write(text);
 }

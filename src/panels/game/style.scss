@@ -7,6 +7,7 @@
 
     #background {
         flex: 1;
+        max-height: calc(100% - 120px);
         object-fit: cover;
         border-radius: 10px;
     }
