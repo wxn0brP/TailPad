@@ -123,7 +123,7 @@ function createActionNode(action: Action, index: number): HTMLElement {
             }
             Object.assign(oldAction, {
                 name: oldAction.name,
-                waitForEnd: oldAction.waitForEnd
+                noWaitForEnd: oldAction.noWaitForEnd
             });
             d.sceneConfig[index] = newAction;
         });
@@ -145,7 +145,7 @@ function createActionNode(action: Action, index: number): HTMLElement {
 
     // Common fields
     content.appendChild(createTextField("name", action.name, (v) => updateField(index, "name", v)));
-    content.appendChild(createBooleanField("waitForEnd", action.waitForEnd, (v) => updateField(index, "waitForEnd", v)));
+    content.appendChild(createBooleanField("noWaitForEnd", action.noWaitForEnd, (v) => updateField(index, "noWaitForEnd", v ? true : undefined)));
 
     // Type-specific fields
     switch (action.type) {

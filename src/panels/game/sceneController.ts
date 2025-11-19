@@ -10,7 +10,8 @@ export function sceneController(scene: GameScene) {
 
 async function waitForEnd(action: ActionBase, cb: (...args: any[]) => Promise<any>, ...args: any[]) {
     const promise = cb(...args);
-    return action.waitForEnd ? await promise : promise;
+    if (!action.noWaitForEnd) await promise;
+    return Promise.resolve();
 }
 
 async function runScene(scene: GameScene, action: Action, index: number) {

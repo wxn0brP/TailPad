@@ -1,6 +1,6 @@
 export interface ActionBase {
     name?: string;
-    waitForEnd?: true;
+    noWaitForEnd?: true;
     type: string;
 }
 
