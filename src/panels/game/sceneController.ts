@@ -22,6 +22,9 @@ async function runScene(scene: GameScene, action: Action, index: number) {
         case "background":
             scene.setBackground(action.url);
             break;
+        case "delay":
+            await waitForEnd(action, () => new Promise((resolve) => setTimeout(resolve, action.ms)));
+            break;
         default:
             const n: never = action;
             throw new Error(`Unknown action type: ${n}`);

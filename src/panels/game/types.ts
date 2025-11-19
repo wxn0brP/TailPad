@@ -14,4 +14,9 @@ export interface ActionBackgroundType extends ActionBase {
     url: string;
 }
 
-export type Action = ActionTextType | ActionBackgroundType;
+export interface ActionDelayType extends ActionBase {
+    type: "delay";
+    ms: number;
+}
+
+export type Action = ActionTextType | ActionBackgroundType | ActionDelayType;
