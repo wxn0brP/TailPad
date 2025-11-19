@@ -1,12 +1,14 @@
-import { render, updateData } from "#api/internal/utils";
-import "#api/internal/yjs";
 import { initializePanels } from "#api/internal/panels";
+import { root } from "#api/internal/state";
+import { render } from "#api/internal/utils";
+import "#api/internal/yjs";
+import "#panels/editor-panel";
+import { mainScene } from "#panels/game";
+import "#panels/game-controller";
+import "#panels/graphical-editor-panel";
 import "#style.scss";
 import "@wxn0brp/flanker-dialog/style.css";
 import "@wxn0brp/flanker-ui/html";
-import { mainScene } from "#panels/game";
-import { root } from "#api/internal/state";
-import "#panels/game-controller";
 
 initializePanels();
 render();

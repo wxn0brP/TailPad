@@ -1,0 +1,91 @@
+.graphical-editor-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+}
+
+.action-node {
+    border: 1px solid var(--panel-border);
+    border-radius: 5px;
+    background-color: var(--panel-back);
+    padding: 10px;
+
+    .node-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+
+        .node-title {
+            font-weight: bold;
+        }
+
+        .node-controls button {
+            margin-left: 5px;
+        }
+    }
+
+    .node-content {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        .field {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            label {
+                width: 100px;
+                text-align: right;
+                flex-shrink: 0;
+            }
+
+            input[type="text"],
+            input[type="number"],
+            select {
+                flex-grow: 1;
+                width: 100%;
+                padding: 5px 10px;
+                border: 1px solid var(--panel-border);
+                border-radius: 4px;
+                background-color: #333;
+                color: var(--txt);
+
+                &:focus {
+                    outline: none;
+                    border-color: var(--accent);
+                }
+            }
+
+            input[type="checkbox"] {
+                width: auto;
+            }
+        }
+    }
+}
+
+.node-btn,
+.add-action-btn {
+    padding: 5px 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+
+    &:hover {
+        background-color: #0056b3;
+    }
+
+    &:disabled {
+        background-color: #555;
+        cursor: not-allowed;
+    }
+}
+
+.add-action-btn {
+    align-self: flex-start;
+}
