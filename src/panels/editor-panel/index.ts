@@ -1,6 +1,6 @@
 import { uiMsg } from "@wxn0brp/flanker-dialog";
-import { client } from "./state";
-import { save } from "./utils";
+import { client } from "../../api/internal/state";
+import { save } from "../../api/internal/utils";
 
 export const textarea = qs<HTMLTextAreaElement>("#editor-textarea");
 

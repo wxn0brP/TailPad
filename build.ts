@@ -11,7 +11,7 @@ esbuild.build({
     target: "es2022",
     bundle: true,
     sourcemap: true,
-    external: [],
+    external: ["@wxn0brp/vql-client"],
     splitting: true,
     minify: !isDev,
     plugins: [
