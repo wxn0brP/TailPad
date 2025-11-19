@@ -13,18 +13,26 @@
 	"license": "MIT",
 	"type": "module",
 	"scripts": {
-		"build": "bun run build.ts"
+		"build": "bun run build.ts",
+		"server": "bun run src/server.ts"
 	},
 	"dependencies": {
+		"@wxn0brp/db": "^0.40.3",
+		"@wxn0brp/db-core": "^0.2.7",
+		"@wxn0brp/falcon-frame": "^0.5.3",
 		"@wxn0brp/flanker-dialog": "^0.0.5",
-		"@wxn0brp/flanker-ui": "^0.4.3"
+		"@wxn0brp/flanker-ui": "^0.4.3",
+		"@wxn0brp/gloves-link-client": "^0.0.4",
+		"@wxn0brp/gloves-link-server": "^0.0.4",
+		"json5": "^2.2.3",
+		"yjs": "^13.6.27"
 	},
 	"devDependencies": {
 		"@types/bun": "*",
 		"esbuild": "^0.27.0",
 		"esbuild-style-plugin": "^1.6.3",
-		"typescript": "*",
-		"sass": "^1.94.1"
+		"sass": "^1.94.1",
+		"typescript": "*"
 	},
 	"files": [
 		"dist"

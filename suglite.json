@@ -3,13 +3,6 @@
 	"watch": [
 		"src"
 	],
-	"server": 26159,
-	"server_map": {
-		"dirs": {
-			"/dist": "dist",
-			"/": "public"
-		}
-	},
 	"restart_cmd": "clear",
 	"events": {
 		"rs": "clear"
