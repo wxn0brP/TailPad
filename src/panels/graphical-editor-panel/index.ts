@@ -1,9 +1,23 @@
 import { root } from "#api/internal/state";
 import { updateData } from "#api/internal/utils";
+import { createPanel } from "#panels/createPanel";
 import { Action } from "../game/types";
 import "./style.scss";
 
-const container = qs("#graphical-editor-content");
+const panel = createPanel(
+    "Graphical Editor",
+    ``,
+    {
+        width: 660,
+        height: 500,
+        top: 20,
+        left: 700,
+        minHeight: 300,
+        minWidth: 480,
+    }
+);
+
+const container = panel.qs(".panel-content");
 
 function renderGraphicalEditor() {
     const data = root.get("data") as { sceneConfig: Action[] };

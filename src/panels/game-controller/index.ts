@@ -1,7 +1,33 @@
 import { mainScene } from "#panels/game";
+import { createPanel } from "#panels/createPanel";
 import { watchCheckbox } from "@wxn0brp/flanker-ui/component/helpers";
 
-const panel = qs("#game-controller-panel .panel-content");
+const panel = createPanel(
+    "Game controller",
+    `<div>
+        <button class="btn" data-id="next-step">Next step</button>
+        <button class="btn" data-id="reset-step">Reset</button>
+        <br>
+        <br>
+        <label>
+            Scene index:
+            <input data-id="scene-index" type="number" value="-1">
+        </label>
+        <br>
+        <label>
+            Pause:
+            <input data-id="pause" type="checkbox" checked>
+        </label>
+    </div>`,
+    {
+        height: 300,
+        width: 640,
+        left: 20,
+        top: 550,
+        minHeight: 100,
+        minWidth: 200,
+    }
+);
 
 panel.qs("next-step", 1).addEventListener("click", () => {
     mainScene.nextStep();
