@@ -1,3 +1,4 @@
+import { uiMsg } from "@wxn0brp/flanker-dialog";
 import { GameScene } from "./state";
 import { Action, ActionBase } from "./types";
 
@@ -25,6 +26,9 @@ async function runScene(scene: GameScene, action: Action, index: number) {
             break;
         case "delay":
             await waitForEnd(action, () => new Promise((resolve) => setTimeout(resolve, action.ms)));
+            break;
+        case "go-to-scene":
+            uiMsg("Go to scene: " + action.scene);
             break;
         default:
             const n: never = action;

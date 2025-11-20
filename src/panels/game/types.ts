@@ -19,4 +19,9 @@ export interface ActionDelayType extends ActionBase {
     ms: number;
 }
 
-export type Action = ActionTextType | ActionBackgroundType | ActionDelayType;
+export interface ActionGoToSceneType extends ActionBase {
+    type: "go-to-scene";
+    scene: string;
+}
+
+export type Action = ActionTextType | ActionBackgroundType | ActionDelayType | ActionGoToSceneType;

@@ -131,9 +131,13 @@ function createActionNode(action: Action, index: number): HTMLElement {
                         ms: 1000,
                     };
                     break;
+                case "go-to-scene":
+                    newAction = {
+                        type: "go-to-scene",
+                        scene: "",
+                    }
                 default:
-                    newAction = oldAction;
-                    break;
+                    throw new Error(`Unknown action type: ${newType}`);
             }
             Object.assign(oldAction, {
                 name: oldAction.name,
@@ -151,7 +155,8 @@ function createActionNode(action: Action, index: number): HTMLElement {
             [
                 "text",
                 "background",
-                "delay"
+                "delay",
+                "go-to-scene",
             ],
             onChange
         )
@@ -172,6 +177,12 @@ function createActionNode(action: Action, index: number): HTMLElement {
         case "delay":
             content.appendChild(createNumberField("ms", action.ms, (v) => updateField(index, "ms", v)));
             break;
+        case "go-to-scene":
+            content.appendChild(createTextField("scene", action.scene, (v) => updateField(index, "scene", v)));
+            break;
+        default:
+            const n: never = action;
+            throw new Error(`Unknown action type: ${n}`);
     }
 
     node.appendChild(header);
