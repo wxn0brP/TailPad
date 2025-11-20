@@ -1,53 +1,53 @@
 {
-	"name": "tail-pad",
-	"version": "0.0.1",
-	"main": "dist/index.js",
-	"types": "dist/index.d.ts",
-	"description": "",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/wxn0brP/TailPad.git"
-	},
-	"homepage": "https://github.com/wxn0brP/TailPad",
-	"author": "wxn0brP",
-	"license": "MIT",
-	"type": "module",
-	"scripts": {
-		"build": "bun run build.ts",
-		"server": "bun run src/server.ts"
-	},
-	"dependencies": {
-		"@wxn0brp/db": "^0.40.3",
-		"@wxn0brp/db-core": "^0.2.7",
-		"@wxn0brp/event-emitter": "^0.0.3",
-		"@wxn0brp/falcon-frame": "^0.5.3",
-		"@wxn0brp/flanker-dialog": "^0.0.5",
-		"@wxn0brp/flanker-ui": "^0.4.3",
-		"@wxn0brp/gloves-link-client": "^0.0.4",
-		"@wxn0brp/gloves-link-server": "^0.0.4",
-		"json5": "^2.2.3",
-		"yjs": "^13.6.27"
-	},
-	"devDependencies": {
-		"@types/bun": "*",
-		"esbuild": "^0.27.0",
-		"esbuild-style-plugin": "^1.6.3",
-		"sass": "^1.94.1",
-		"typescript": "*"
-	},
-	"files": [
-		"dist"
-	],
-	"exports": {
-		".": {
-			"types": "./dist/index.d.ts",
-			"import": "./dist/index.js",
-			"default": "./dist/index.js"
-		},
-		"./*": {
-			"types": "./dist/*.d.ts",
-			"import": "./dist/*.js",
-			"default": "./dist/*.js"
-		}
-	}
+    "name": "tail-pad",
+    "version": "0.0.1",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "description": "",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/wxn0brP/TailPad.git"
+    },
+    "homepage": "https://github.com/wxn0brP/TailPad",
+    "author": "wxn0brP",
+    "license": "MIT",
+    "type": "module",
+    "scripts": {
+        "build": "bun run build.ts",
+        "server": "bun run src/server.ts"
+    },
+    "dependencies": {
+        "@wxn0brp/db": "^0.40.3",
+        "@wxn0brp/db-core": "^0.2.7",
+        "@wxn0brp/event-emitter": "^0.0.4",
+        "@wxn0brp/falcon-frame": "^0.5.3",
+        "@wxn0brp/flanker-dialog": "^0.0.5",
+        "@wxn0brp/flanker-ui": "^0.4.3",
+        "@wxn0brp/gloves-link-client": "^0.0.6",
+        "@wxn0brp/gloves-link-server": "^0.0.4",
+        "json5": "^2.2.3",
+        "yjs": "^13.6.27"
+    },
+    "devDependencies": {
+        "@types/bun": "*",
+        "esbuild": "^0.27.0",
+        "esbuild-style-plugin": "^1.6.3",
+        "sass": "^1.94.2",
+        "typescript": "*"
+    },
+    "files": [
+        "dist"
+    ],
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js",
+            "default": "./dist/index.js"
+        },
+        "./*": {
+            "types": "./dist/*.d.ts",
+            "import": "./dist/*.js",
+            "default": "./dist/*.js"
+        }
+    }
 }

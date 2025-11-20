@@ -6,6 +6,7 @@ import "#panels/editor-panel";
 import { mainScene } from "#panels/game";
 import "#panels/game-controller";
 import "#panels/graphical-editor-panel";
+import "#panels/scene-manager-panel";
 import "#style.scss";
 import "@wxn0brp/flanker-dialog/style.css";
 import "@wxn0brp/flanker-ui/html";

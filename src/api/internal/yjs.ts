@@ -1,5 +1,6 @@
-import { client, root, ydoc } from "./state";
+import { getSceneId } from "#panels/scene-manager-panel";
 import * as Y from "yjs";
+import { client, root, ydoc } from "./state";
 import { render } from "./utils";
 
 ydoc.on("update", (update: Uint8Array) => {
@@ -11,6 +12,8 @@ client.on("y-update", (data: number[]) => {
 });
 
 client.on("connect", () => {
+    client.emit("set-doc", getSceneId());
+
     const update: Uint8Array = Y.encodeStateAsUpdate(ydoc);
     client.emit("y-sync", Array.from(update));
 });

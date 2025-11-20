@@ -2,7 +2,27 @@ import GlovesLinkClient from "@wxn0brp/gloves-link-client";
 import * as Y from "yjs";
 import { mgl } from "./mlg";
 
-export const client = new GlovesLinkClient("", {
+interface BaseData<T = undefined> {
+    err: boolean;
+    msg?: string;
+    data: T;
+}
+
+type IncomeTypes = {
+
+}
+
+type OutcomeTypes = {
+    "set-doc": (id: string) => void;
+    "y-sync": (data: number[]) => void;
+    "y-update": (data: number[]) => void;
+    "hard-save": () => void;
+    "scenes:list": (callback: (res: BaseData<string[]>) => void) => void;
+    "scenes:create": (id: string, callback: (res: BaseData<string>) => void) => void;
+    "scenes:delete": (id: string, callback: (res: BaseData) => void) => void;
+}
+
+export const client = new GlovesLinkClient<IncomeTypes, OutcomeTypes>("", {
     reConnect: true,
     logs: true,
     token: "TailPad",

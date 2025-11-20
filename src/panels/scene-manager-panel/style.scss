@@ -1,0 +1,41 @@
+.scene-manager-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    
+    #scene-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        overflow-y: auto;
+        flex-grow: 1;
+
+        li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            border-bottom: 1px solid #ccc;
+
+            &:last-child {
+                border-bottom: none;
+            }
+        }
+    }
+
+    .scene-item-controls {
+        display: flex;
+        gap: 4px;
+    }
+
+    .scene-manager-controls {
+        display: flex;
+        padding: 8px;
+        border-top: 1px solid #ccc;
+
+        input {
+            flex-grow: 1;
+            margin-right: 8px;
+        }
+    }
+}
