@@ -1,6 +1,6 @@
 import VEE from "@wxn0brp/event-emitter";
 import { GameScene } from "./state";
-import { Action, ActionBackgroundType, ActionDelayType, ActionTextType } from "./types";
+import { Action, ActionBackgroundType, ActionDelayType, ActionDialogChoiceType, ActionTextType } from "./types";
 
 export const actionEmitter = new VEE<{
     [event: string]: (
@@ -36,6 +36,16 @@ async function runScene(scene: GameScene, action: Action, index: number) {
 
 actionEmitter.on("text", async (cb, action: ActionTextType, scene) => {
     scene.dialogEngine.write(action.text).then(cb);
+});
+
+actionEmitter.on("dialog-choice", async (cb, action: ActionDialogChoiceType, scene, index) => {
+    scene.showChoices(action.choices).then(choice => {
+        actionEmitter.emit("go-to-scene", () => { }, { type: "go-to-scene", scene: choice.scene }, scene, -index);
+        cb();
+    });
+
+    if (action.text)
+        scene.dialogEngine.write(action.text);
 });
 
 actionEmitter.on("background", async (cb, action: ActionBackgroundType, scene) => {

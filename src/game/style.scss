@@ -4,6 +4,7 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    position: relative;
 
     #background {
         flex: 1;
@@ -21,5 +22,37 @@
         border-radius: 10px;
         padding: 10px;
         margin-top: 10px;
+    }
+
+    #choices-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: calc(100% - 120px);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 1;
+        pointer-events: none;
+
+        button {
+            pointer-events: all;
+            padding: 10px 20px;
+            background-color: #333;
+            color: white;
+            border: 1px solid #555;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            min-width: 200px;
+            text-align: center;
+            margin: 5px 0;
+
+            &:hover {
+                background-color: #555;
+            }
+        }
     }
 }
