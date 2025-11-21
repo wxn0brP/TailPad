@@ -1,8 +1,7 @@
 {
     "name": "tail-pad",
     "version": "0.0.1",
-    "main": "dist/index.js",
-    "types": "dist/index.d.ts",
+    "main": "src/server.ts",
     "description": "",
     "repository": {
         "type": "git",
@@ -12,6 +11,10 @@
     "author": "wxn0brP",
     "license": "MIT",
     "type": "module",
+    "bin": {
+        "tailpad-server": "./src/server.ts",
+        "tailpad-bundle": "./src/build/index.ts"
+    },
     "scripts": {
         "build": "bun run build.ts",
         "server": "bun run src/server.ts"
@@ -25,29 +28,16 @@
         "@wxn0brp/flanker-ui": "^0.4.3",
         "@wxn0brp/gloves-link-client": "^0.0.6",
         "@wxn0brp/gloves-link-server": "^0.0.4",
+        "html-minifier-terser": "^7.2.0",
         "json5": "^2.2.3",
         "yjs": "^13.6.27"
     },
     "devDependencies": {
         "@types/bun": "*",
+        "@types/html-minifier-terser": "^7.0.2",
         "esbuild": "^0.27.0",
         "esbuild-style-plugin": "^1.6.3",
         "sass": "^1.94.2",
         "typescript": "*"
-    },
-    "files": [
-        "dist"
-    ],
-    "exports": {
-        ".": {
-            "types": "./dist/index.d.ts",
-            "import": "./dist/index.js",
-            "default": "./dist/index.js"
-        },
-        "./*": {
-            "types": "./dist/*.d.ts",
-            "import": "./dist/*.js",
-            "default": "./dist/*.js"
-        }
     }
 }

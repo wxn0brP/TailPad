@@ -1,3 +1,5 @@
+#!/usr/bin/env bun
+
 import { GlovesLinkServer } from "@wxn0brp/gloves-link-server";
 import { FalconFrame } from "@wxn0brp/falcon-frame";
 import * as Y from "yjs";
@@ -6,8 +8,9 @@ import { Valthera } from "@wxn0brp/db";
 const app = new FalconFrame();
 const port = +process.env.PORT || 26159;
 const httpServer = app.listen(port);
-app.static("public");
-app.static("/dist", "dist");
+app.static("/", import.meta.dirname + "/../public");
+app.static("/dist", import.meta.dirname + "/../dist");
+app.static("/assets", "assets", { errorIfDirNotFound: false });
 
 console.log(`Listening on http://localhost:${port}`);
 
@@ -42,7 +45,7 @@ const glovesLink = new GlovesLinkServer({
     }
 });
 
-glovesLink.falconFrame(app);
+glovesLink.falconFrame(app, import.meta.dirname + "/../node_modules/@wxn0brp/gloves-link-client/dist/");
 
 glovesLink.onConnect((socket) => {
     console.log("New connection:", socket.id);

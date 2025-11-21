@@ -16,7 +16,7 @@ A collaborative visual novel game engine and editor with real-time synchronizati
 TailPad consists of two main components:
 
 1. **Frontend Client**: A web-based interface with multiple draggable panels
-2. **Backend Server**: A Node.js server handling WebSocket connections and database persistence
+2. **Backend Server**: A bun server handling WebSocket connections and database persistence
 
 ### Panels
 
@@ -60,24 +60,41 @@ The built-in game engine supports various action types:
    bun run build
    ```
 
+## Linking
+
+Get [ing command](https://github.com/wxn0brP/dotfiles)
+
+Create a symlink using `ing`:
+```bash
+ing
+```
+
 ## Usage
 
-### Running the Server
-
-1. Start the backend server:
-   ```bash
-   bun run server
-   ```
-   
-   The server will start on port 26159 by default (or PORT environment variable).
-
-2. Open your browser and navigate to `http://localhost:26159`
-
-### Development
-
-For development with auto-rebuild:
+Start the server:
 ```bash
-suglite
+tailpad-server
+```
+
+Build the game: (to publish)
+```bash
+tailpad-bundle
+```
+
+## Build configuration
+
+The build configuration is defined in the `config.json5` file.
+
+```json
+{
+   "title": "string || Tail Pad Game",
+   "icon": "? string",
+   "outdir": "string || game-build",
+   "scripts": "? string[]",
+   "styles": "? string[]",
+   "head": "? string",
+   "body": "? string",
+}
 ```
 
 ## Technologies Used
