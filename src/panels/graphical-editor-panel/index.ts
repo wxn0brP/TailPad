@@ -1,7 +1,7 @@
 import { root } from "#api/internal/state";
 import { updateData } from "#api/internal/utils";
 import { createPanel } from "#panels/createPanel";
-import { Action, ActionDialogChoiceType } from "../game/types";
+import { Action, ActionDialogChoiceType } from "../../game/types";
 import "./style.scss";
 
 const panel = createPanel(
@@ -193,11 +193,11 @@ function createActionNode(action: Action, index: number): HTMLElement {
             content.appendChild(createTextField("text", action.text, (v) => updateField(index, "text", v)));
             const choicesContainer = document.createElement("div");
             choicesContainer.className = "choices-container";
-            
+
             action.choices.forEach((choice, choiceIndex) => {
                 const choiceContainer = document.createElement("div");
                 choiceContainer.className = "choice-container";
-                
+
                 const fields = document.createElement("div");
                 fields.className = "choice-fields";
                 fields.appendChild(createTextField("text", choice.text, (v) => updateChoice(index, choiceIndex, "text", v)));

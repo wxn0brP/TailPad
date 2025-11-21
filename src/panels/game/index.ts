@@ -1,8 +1,10 @@
 import { mgl } from "#api/internal/mlg";
+import { actionEmitter, sceneController } from "#game/sceneController";
+import { GameScene } from "#game/state";
+import "#game/style.scss";
+import { ActionDialogChoiceType, ActionGoToSceneType } from "#game/types";
 import { createPanel } from "#panels/createPanel";
-import { sceneController } from "./sceneController";
-import { GameScene } from "./state";
-import "./style.scss";
+import { selectPrompt, uiMsg } from "@wxn0brp/flanker-dialog";
 
 const panel = createPanel(
     "Game preview",
@@ -21,5 +23,15 @@ const panel = createPanel(
 );
 
 export const mainScene = new GameScene(panel.qs("#game-scene"));
-sceneController(mainScene);
 mgl.mainScene = mainScene;
+
+actionEmitter.on("go-to-scene", async (cb, action: ActionGoToSceneType) => {
+    uiMsg("Go to scene: " + action.scene);
+    cb();
+});
+
+actionEmitter.on("dialog-choice", async (cb, action: ActionDialogChoiceType) => {
+    const sceneName = await selectPrompt(action.text, action.choices.map(c => c.text), action.choices.map(c => c.scene));
+    uiMsg("Go to scene: " + sceneName);
+    cb();
+});

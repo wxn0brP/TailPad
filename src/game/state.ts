@@ -3,6 +3,7 @@ import { DialogEngine } from "./dialog";
 import { Action } from "./types";
 import { GameEvents } from "./events";
 import { ReactiveCell } from "@wxn0brp/flanker-ui";
+import { sceneController } from "./sceneController";
 
 export class GameScene {
     element: HTMLDivElement;
@@ -18,6 +19,7 @@ export class GameScene {
         this.element = element;
         this.background = element.qs("#background");
         this.dialogEngine = new DialogEngine(element.qs("#dialog-box"));
+        sceneController(this);
     }
 
     setBackground(url: string) {
