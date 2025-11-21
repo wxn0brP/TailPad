@@ -1,4 +1,4 @@
-import { uiMsg } from "@wxn0brp/flanker-dialog";
+import { selectPrompt, uiMsg } from "@wxn0brp/flanker-dialog";
 import { GameScene } from "./state";
 import { Action, ActionBase } from "./types";
 
@@ -29,6 +29,10 @@ async function runScene(scene: GameScene, action: Action, index: number) {
             break;
         case "go-to-scene":
             uiMsg("Go to scene: " + action.scene);
+            break;
+        case "dialog-choice":
+            const sceneName = await selectPrompt(action.text, action.choices.map(c => c.text), action.choices.map(c => c.scene));
+            uiMsg("Go to scene: " + sceneName);
             break;
         default:
             const n: never = action;

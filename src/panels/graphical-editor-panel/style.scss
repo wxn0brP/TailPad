@@ -67,7 +67,8 @@
 }
 
 .node-btn,
-.add-action-btn {
+.add-action-btn,
+.add-choice-btn {
     padding: 5px 10px;
     background-color: #007bff;
     color: white;
@@ -86,6 +87,43 @@
     }
 }
 
+.delete-btn {
+    background-color: #dc3545;
+
+    &:hover {
+        background-color: #c82333;
+    }
+}
+
 .add-action-btn {
     align-self: flex-start;
+}
+
+.add-choice-btn {
+    align-self: flex-start;
+    margin-top: 10px;
+}
+
+.choices-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.choice-container {
+    border: 1px solid #444;
+    padding: 10px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.choice-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-grow: 1;
 }

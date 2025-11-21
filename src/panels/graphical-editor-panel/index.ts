@@ -1,7 +1,7 @@
 import { root } from "#api/internal/state";
 import { updateData } from "#api/internal/utils";
 import { createPanel } from "#panels/createPanel";
-import { Action } from "../game/types";
+import { Action, ActionDialogChoiceType } from "../game/types";
 import "./style.scss";
 
 const panel = createPanel(
@@ -96,7 +96,7 @@ function createActionNode(action: Action, index: number): HTMLElement {
 
     const deleteButton = document.createElement("button");
     deleteButton.textContent = "Delete";
-    deleteButton.className = "node-btn";
+    deleteButton.className = "node-btn delete-btn";
     deleteButton.addEventListener("click", () => {
         updateData(d => {
             d.sceneConfig.splice(index, 1);
@@ -136,6 +136,14 @@ function createActionNode(action: Action, index: number): HTMLElement {
                         type: "go-to-scene",
                         scene: "",
                     }
+                    break;
+                case "dialog-choice":
+                    newAction = {
+                        type: "dialog-choice",
+                        text: "",
+                        choices: [],
+                    }
+                    break;
                 default:
                     throw new Error(`Unknown action type: ${newType}`);
             }
@@ -157,6 +165,7 @@ function createActionNode(action: Action, index: number): HTMLElement {
                 "background",
                 "delay",
                 "go-to-scene",
+                "dialog-choice",
             ],
             onChange
         )
@@ -179,6 +188,47 @@ function createActionNode(action: Action, index: number): HTMLElement {
             break;
         case "go-to-scene":
             content.appendChild(createTextField("scene", action.scene, (v) => updateField(index, "scene", v)));
+            break;
+        case "dialog-choice":
+            content.appendChild(createTextField("text", action.text, (v) => updateField(index, "text", v)));
+            const choicesContainer = document.createElement("div");
+            choicesContainer.className = "choices-container";
+            
+            action.choices.forEach((choice, choiceIndex) => {
+                const choiceContainer = document.createElement("div");
+                choiceContainer.className = "choice-container";
+                
+                const fields = document.createElement("div");
+                fields.className = "choice-fields";
+                fields.appendChild(createTextField("text", choice.text, (v) => updateChoice(index, choiceIndex, "text", v)));
+                fields.appendChild(createTextField("scene", choice.scene, (v) => updateChoice(index, choiceIndex, "scene", v)));
+                choiceContainer.appendChild(fields);
+
+                const deleteChoiceButton = document.createElement("button");
+                deleteChoiceButton.textContent = "Delete";
+                deleteChoiceButton.className = "node-btn delete-btn";
+                deleteChoiceButton.addEventListener("click", () => {
+                    updateData(d => {
+                        const action = d.sceneConfig[index] as ActionDialogChoiceType;
+                        action.choices.splice(choiceIndex, 1);
+                    });
+                });
+                choiceContainer.appendChild(deleteChoiceButton);
+                choicesContainer.appendChild(choiceContainer);
+            });
+
+            const addChoiceButton = document.createElement("button");
+            addChoiceButton.textContent = "Add Choice";
+            addChoiceButton.className = "add-choice-btn";
+            addChoiceButton.addEventListener("click", () => {
+                updateData(d => {
+                    const action = d.sceneConfig[index] as ActionDialogChoiceType;
+                    action.choices.push({ text: "", scene: "" });
+                });
+            });
+            choicesContainer.appendChild(addChoiceButton);
+
+            content.appendChild(choicesContainer);
             break;
         default:
             const n: never = action;
@@ -243,6 +293,13 @@ function createBooleanField(key: string, value: boolean, onChange: (value: boole
 function updateField(index: number, key: string, value: any) {
     updateData(d => {
         d.sceneConfig[index][key] = value;
+    });
+}
+
+function updateChoice(actionIndex: number, choiceIndex: number, key: string, value: any) {
+    updateData(d => {
+        const action = d.sceneConfig[actionIndex] as ActionDialogChoiceType;
+        action.choices[choiceIndex][key] = value;
     });
 }
 

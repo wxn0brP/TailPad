@@ -24,4 +24,20 @@ export interface ActionGoToSceneType extends ActionBase {
     scene: string;
 }
 
-export type Action = ActionTextType | ActionBackgroundType | ActionDelayType | ActionGoToSceneType;
+export interface Choice {
+    text: string;
+    scene: string;
+}
+
+export interface ActionDialogChoiceType extends ActionBase {
+    type: "dialog-choice";
+    text: string;
+    choices: Choice[];
+}
+
+export type Action =
+    | ActionTextType
+    | ActionBackgroundType
+    | ActionDelayType
+    | ActionGoToSceneType
+    | ActionDialogChoiceType
