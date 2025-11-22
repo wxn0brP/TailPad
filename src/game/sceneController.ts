@@ -35,7 +35,7 @@ async function runScene(scene: GameScene, action: Action, index: number) {
 }
 
 actionEmitter.on("text", async (cb, action: ActionTextType, scene) => {
-    scene.dialogEngine.write(action.text).then(cb);
+    scene.dialogEngine.writeAndConfirm(action.text).then(cb);
 });
 
 actionEmitter.on("dialog-choice", async (cb, action: ActionDialogChoiceType, scene, index) => {
