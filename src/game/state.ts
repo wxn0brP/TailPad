@@ -19,7 +19,7 @@ export class GameScene {
     constructor(element: HTMLDivElement) {
         this.element = element;
         this.background = element.qs("#background");
-        this.dialogEngine = new DialogEngine(element.qs("#dialog-box"));
+        this.dialogEngine = new DialogEngine(element.qs("#dialog-box"), this.pause);
         this.choicesContainer = element.qs("#choices-container");
         sceneController(this);
     }

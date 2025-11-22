@@ -1,7 +1,12 @@
 import { delay } from "@wxn0brp/flanker-ui/utils";
+import { ReactiveCell } from "@wxn0brp/flanker-ui";
 
 export class DialogEngine {
-    constructor(public element: HTMLDivElement, public speed = 25) { }
+    constructor(
+        public element: HTMLDivElement,
+        private pause: ReactiveCell<boolean>,
+        public speed = 25
+    ) { }
 
     _writing = 0;
 
@@ -26,14 +31,28 @@ export class DialogEngine {
         await this._writeText(text);
 
         return new Promise<void>((resolve) => {
-            const onClick = () => {
+            const cleanup = () => {
                 window.removeEventListener("click", onClick);
                 document.removeEventListener("keydown", onKeyDown);
-                resolve();
+            };
+
+            const onClick = (e: MouseEvent) => {
+                if (this.pause.get()) return;
+
+                const target = e.target as HTMLElement;
+                if (target.closest("#dialog-box") || target.id === "background") {
+                    cleanup();
+                    resolve();
+                }
             };
 
             const onKeyDown = (e: KeyboardEvent) => {
-                if (e.code === "Space" || e.code === "Enter") onClick();
+                if (this.pause.get()) return;
+
+                if (e.code === "Space" || e.code === "Enter") {
+                    cleanup();
+                    resolve();
+                }
             };
 
             window.addEventListener("click", onClick);
