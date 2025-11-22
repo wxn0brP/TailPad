@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../node_modules/ws/browser.js"],
+  "sourcesContent": ["'use strict';\n\nmodule.exports = function () {\n  throw new Error(\n    'ws does not work in the browser. Browser clients must use the native ' +\n      'WebSocket object'\n  );\n};\n"],
+  "mappings": "wCAAA,IAAAA,EAAAC,EAAA,CAAAC,EAAAC,IAAA,CAEAA,EAAO,QAAU,UAAY,CAC3B,MAAM,IAAI,MACR,uFAEF,CACF",
+  "names": ["require_browser", "__commonJSMin", "exports", "module"]
+}
