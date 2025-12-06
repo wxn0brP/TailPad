@@ -20,7 +20,7 @@
         "server": "bun run src/server.ts"
     },
     "dependencies": {
-        "@wxn0brp/db": "^0.40.3",
+        "@wxn0brp/db": "^0.41.0",
         "@wxn0brp/db-core": "^0.2.7",
         "@wxn0brp/event-emitter": "^0.0.4",
         "@wxn0brp/falcon-frame": "^0.5.3",
