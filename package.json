@@ -27,7 +27,7 @@
         "@wxn0brp/flanker-dialog": "^0.0.5",
         "@wxn0brp/flanker-ui": "^0.4.3",
         "@wxn0brp/gloves-link-client": "^0.0.6",
-        "@wxn0brp/gloves-link-server": "^0.0.4",
+        "@wxn0brp/gloves-link-server": "^0.0.13",
         "html-minifier-terser": "^7.2.0",
         "json5": "^2.2.3",
         "yjs": "^13.6.27"
