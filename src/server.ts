@@ -37,17 +37,16 @@ async function loadFromDb() {
 }
 loadFromDb();
 
-const glovesLink = new GlovesLinkServer({
-    server: httpServer,
-    logs: true,
-    authFn: async ({ headers, url, token }) => {
-        return token === "TailPad";
-    }
+const glovesLink = new GlovesLinkServer({ logs: true });
+glovesLink.createServer(httpServer);
+glovesLink.falconFrame(app);
+
+glovesLink.of("/").auth(async ({ token }) => {
+    const ok = token === "TailPad";
+    return ok ? { status: 200, user: {} } : { status: 401, msg: "Unauthorized" };
 });
 
-glovesLink.falconFrame(app, import.meta.dirname + "/../node_modules/@wxn0brp/gloves-link-client/dist/");
-
-glovesLink.onConnect((socket) => {
+glovesLink.of("/").onConnect((socket) => {
     console.log("New connection:", socket.id);
     let docId = "";
 

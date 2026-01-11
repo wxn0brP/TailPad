@@ -22,11 +22,15 @@ type OutcomeTypes = {
     "scenes:delete": (id: string, callback: (res: BaseData) => void) => void;
 }
 
-export const client = new GlovesLinkClient<IncomeTypes, OutcomeTypes>("", {
+export const client = new GlovesLinkClient<IncomeTypes, OutcomeTypes>("/", {
     reConnect: true,
     logs: true,
     token: "TailPad",
 });
+
+client.on("connect_forbidden", console.error);
+client.on("connect_serverError", console.error);
+client.on("connect_unauthorized", console.error);
 
 export const ydoc: Y.Doc = new Y.Doc();
 export const root: Y.Map<any> = ydoc.getMap("root");
