@@ -1,0 +1,39 @@
+{
+  "name": "tail-pad",
+  "version": "0.0.1",
+  "main": "src/server.ts",
+  "description": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wxn0brP/TailPad.git"
+  },
+  "homepage": "https://github.com/wxn0brP/TailPad",
+  "author": "wxn0brP",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "tailpad-server": "./src/server.ts",
+    "tailpad-bundle": "./src/build/index.ts"
+  },
+  "dependencies": {
+    "@wxn0brp/db": "^0.41.1",
+    "@wxn0brp/db-core": "^0.4.0",
+    "@wxn0brp/event-emitter": "^0.0.4",
+    "@wxn0brp/falcon-frame": "^0.5.9",
+    "@wxn0brp/flanker-dialog": "^0.0.5",
+    "@wxn0brp/flanker-ui": "^0.4.7",
+    "@wxn0brp/gloves-link-client": "^0.0.13",
+    "@wxn0brp/gloves-link-server": "^0.0.13",
+    "html-minifier-terser": "^7.2.0",
+    "json5": "^2.2.3",
+    "yjs": "^13.6.29"
+  },
+  "devDependencies": {
+    "@types/bun": "*",
+    "@types/html-minifier-terser": "^7.0.2",
+    "esbuild": "^0.27.2",
+    "esbuild-style-plugin": "^1.6.3",
+    "sass": "^1.97.2",
+    "typescript": "*"
+  }
+}
