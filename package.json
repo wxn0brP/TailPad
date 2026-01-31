@@ -26,7 +26,7 @@
         "@wxn0brp/falcon-frame": "^0.5.9",
         "@wxn0brp/flanker-dialog": "^0.0.5",
         "@wxn0brp/flanker-ui": "^0.4.7",
-        "@wxn0brp/gloves-link-client": "^0.0.13",
+        "@wxn0brp/gloves-link-client": "^0.1.0",
         "@wxn0brp/gloves-link-server": "^0.0.13",
         "html-minifier-terser": "^7.2.0",
         "json5": "^2.2.3",
