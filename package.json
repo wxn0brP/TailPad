@@ -23,7 +23,7 @@
         "@wxn0brp/db": "^0.41.1",
         "@wxn0brp/db-core": "^0.4.0",
         "@wxn0brp/event-emitter": "^0.0.4",
-        "@wxn0brp/falcon-frame": "^0.5.9",
+        "@wxn0brp/falcon-frame": "^0.7.0",
         "@wxn0brp/flanker-dialog": "^0.0.5",
         "@wxn0brp/flanker-ui": "^0.4.7",
         "@wxn0brp/gloves-link-client": "^0.0.13",
