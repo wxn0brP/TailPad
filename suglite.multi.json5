@@ -1,0 +1,8 @@
+[
+    {
+        cmd: "bun server",
+        watch: [
+            "src/server.ts"
+        ]
+    }
+]

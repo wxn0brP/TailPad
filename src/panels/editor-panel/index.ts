@@ -1,7 +1,7 @@
-import { uiMsg } from "@wxn0brp/flanker-dialog";
-import { client } from "../../api/internal/state";
-import { save } from "../../api/internal/utils";
+import { client } from "#api/internal/state";
+import { save } from "#api/internal/utils";
 import { createPanel } from "#panels/createPanel";
+import { uiMsg } from "@wxn0brp/flanker-dialog/msg/index";
 
 const panel = createPanel(
     "Editor",

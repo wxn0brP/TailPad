@@ -1,8 +1,8 @@
-import { uiMsg } from "@wxn0brp/flanker-dialog";
-import JSON5 from "json5";
-import { root } from "./state";
 import { textarea } from "#panels/editor-panel";
+import { uiMsg } from "@wxn0brp/flanker-dialog/msg/index";
+import JSON5 from "json5";
 import { mgl } from "./mlg";
+import { root } from "./state";
 
 export function save() {
     try {

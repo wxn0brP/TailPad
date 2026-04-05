@@ -1,6 +1,6 @@
 import { client } from "#api/internal/state";
 import { createPanel } from "#panels/createPanel";
-import { uiMsg } from "@wxn0brp/flanker-dialog";
+import { uiMsg } from "@wxn0brp/flanker-dialog/msg/index";
 import "./style.scss";
 
 const panel = createPanel(

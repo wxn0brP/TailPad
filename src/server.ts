@@ -3,7 +3,7 @@
 import { GlovesLinkServer } from "@wxn0brp/gloves-link-server";
 import { FalconFrame } from "@wxn0brp/falcon-frame";
 import * as Y from "yjs";
-import { Valthera } from "@wxn0brp/db";
+import { db } from "#db";
 
 const app = new FalconFrame();
 const port = +process.env.PORT || 26159;
@@ -14,7 +14,6 @@ app.static("/assets", "assets", { errorIfDirNotFound: false });
 
 console.log(`Listening on http://localhost:${port}`);
 
-const db = new Valthera("data/master");
 const serverDocs: Map<string, Y.Doc> = new Map();
 
 function getServerDoc(id: string) {
@@ -26,20 +25,21 @@ function getServerDoc(id: string) {
 }
 
 async function loadFromDb() {
-    const data = await db.find("data");
+    const data = await db.data.find();
     if (!data.length) return;
     for (const doc of data) {
         const id = doc._id as string;
         delete doc._id;
         const map = getServerDoc(id).getMap("root");
-        map.set("data", doc);
+        for (const [key, value] of Object.entries(doc))
+            map.set(key, value);
     }
 }
 loadFromDb();
 
 const glovesLink = new GlovesLinkServer({ logs: true });
-glovesLink.createServer(httpServer);
 glovesLink.falconFrame(app);
+glovesLink.attachToHttpServer(httpServer);
 
 glovesLink.of("/").auth(async ({ token }) => {
     const ok = token === "TailPad";
@@ -79,12 +79,12 @@ glovesLink.of("/").onConnect((socket) => {
         if (!docId) return console.error("hard-save", "docId is null");
         console.log("hard-save", socket.id);
         const data = getServerDoc(docId).getMap("root").get("data");
-        await db.updateOneOrAdd("data", { _id: docId }, data);
+        await db.data.updateOneOrAdd({ _id: docId }, data);
     });
 
     socket.on("scenes:list", async (callback) => {
         try {
-            const scenes = await db.find("data");
+            const scenes = await db.data.find();
             const sceneIds = scenes.map(s => s._id);
             callback({ err: false, data: sceneIds });
         } catch (e) {
@@ -94,14 +94,14 @@ glovesLink.of("/").onConnect((socket) => {
 
     socket.on("scenes:create", async (id, callback) => {
         try {
-            if (!id || typeof id !== "string" || id.length < 3) {
+            if (!id || typeof id !== "string" || id.length < 3)
                 return callback({ err: true, msg: "Invalid ID (min 3 chars)" });
-            }
-            const existing = await db.findOne("data", { _id: id });
-            if (existing) {
+
+            const existing = await db.data.findOne({ _id: id });
+            if (existing)
                 return callback({ err: true, msg: "Scene already exists" });
-            }
-            await db.add("data", { _id: id, sceneConfig: [] });
+
+            await db.data.add({ _id: id, sceneConfig: [] });
             callback({ err: false, data: id });
         } catch (e) {
             callback({ err: true, msg: e.message });
@@ -110,13 +110,13 @@ glovesLink.of("/").onConnect((socket) => {
 
     socket.on("scenes:delete", async (id, callback) => {
         try {
-            if (!id || typeof id !== "string") {
+            if (!id || typeof id !== "string")
                 return callback({ err: true, msg: "Invalid ID" });
-            }
-            if (id === "data") {
+
+            if (id === "data")
                 return callback({ err: true, msg: "Cannot delete default scene" });
-            }
-            await db.removeOne("data", { _id: id });
+
+            await db.data.removeOne({ _id: id });
             if (serverDocs.has(id)) {
                 serverDocs.delete(id);
                 console.log(`Removed scene ${id} from memory.`);

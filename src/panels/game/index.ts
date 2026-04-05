@@ -4,7 +4,7 @@ import { GameScene } from "#game/state";
 import "#game/style.scss";
 import { ActionGoToSceneType } from "#game/types";
 import { createPanel } from "#panels/createPanel";
-import { uiMsg } from "@wxn0brp/flanker-dialog";
+import { uiMsg } from "@wxn0brp/flanker-dialog/msg/index";
 
 const panel = createPanel(
     "Game preview",
