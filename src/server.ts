@@ -31,8 +31,7 @@ async function loadFromDb() {
         const id = doc._id as string;
         delete doc._id;
         const map = getServerDoc(id).getMap("root");
-        for (const [key, value] of Object.entries(doc))
-            map.set(key, value);
+        map.set("data", doc);
     }
 }
 loadFromDb();
