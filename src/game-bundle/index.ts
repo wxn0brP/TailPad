@@ -1,8 +1,9 @@
+import "@wxn0brp/flanker-ui/html";
+
 import { actionEmitter } from "#game/sceneController";
 import { GameScene } from "#game/state";
 import "#game/style.scss";
 import { ActionBackgroundType } from "#game/types";
-import "@wxn0brp/flanker-ui/html";
 import { MenuUI } from "./menu-ui";
 import { getSaves, SaveData, saveGameToSlot } from "./save";
 import { SaveLoadUI } from "./save-ui";
