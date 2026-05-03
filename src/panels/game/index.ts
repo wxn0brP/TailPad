@@ -13,14 +13,7 @@ const panel = createPanel(
         <div id="choices-container"></div>
         <div id="dialog-box"></div>
     </div>`,
-    {
-        width: 640,
-        height: 500,
-        top: 20,
-        left: 20,
-        minWidth: 480,
-        minHeight: 300,
-    }
+    "game-panel"
 );
 
 export const mainScene = new GameScene(panel.qs("#game-scene"));

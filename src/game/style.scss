@@ -1,5 +1,6 @@
 #game-scene {
     width: 100%;
+    max-width: 49vw;
     height: 100%;
     overflow: hidden;
     display: flex;
@@ -8,7 +9,7 @@
 
     #background {
         flex: 1;
-        max-height: calc(100% - 120px);
+        max-height: calc(100% - 4rem);
         object-fit: cover;
         border-radius: 10px;
     }

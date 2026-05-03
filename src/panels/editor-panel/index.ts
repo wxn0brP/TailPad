@@ -10,14 +10,7 @@ const panel = createPanel(
         <button id="save" class="btn">Save</button>
         <button id="hard-save" class="btn">Hard Save</button>
     </div>`,
-    {
-        height: 300,
-        width: 400,
-        left: 700,
-        top: 550,
-        minHeight: 200,
-        minWidth: 250
-    }
+    "editor-panel"
 );
 
 export const textarea = panel.qs<HTMLTextAreaElement>("#editor-textarea");

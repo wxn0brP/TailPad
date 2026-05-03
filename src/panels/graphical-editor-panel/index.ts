@@ -7,14 +7,7 @@ import "./style.scss";
 const panel = createPanel(
     "Graphical Editor",
     ``,
-    {
-        width: 660,
-        height: 500,
-        top: 20,
-        left: 700,
-        minHeight: 300,
-        minWidth: 480,
-    }
+    "graphical-editor-panel"
 );
 
 const container = panel.qs(".panel-content");

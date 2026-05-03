@@ -14,14 +14,7 @@ const panel = createPanel(
         </div>
     </div>
     `,
-    {
-        height: 300,
-        width: 300,
-        left: 1120,
-        top: 550,
-        minHeight: 200,
-        minWidth: 200
-    }
+    "scene-manager-panel"
 );
 
 const sceneList = panel.querySelector<HTMLUListElement>("#scene-list");

@@ -19,14 +19,7 @@ const panel = createPanel(
             <input data-id="pause" type="checkbox" checked>
         </label>
     </div>`,
-    {
-        height: 300,
-        width: 640,
-        left: 20,
-        top: 550,
-        minHeight: 100,
-        minWidth: 200,
-    }
+    "game-controller-panel"
 );
 
 panel.qs("next-step", 1).addEventListener("click", () => {
