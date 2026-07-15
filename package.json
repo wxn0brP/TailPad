@@ -39,6 +39,6 @@
 		"esbuild": "^0.28.0",
 		"esbuild-style-plugin": "^1.6.3",
 		"sass": "^1.99.0",
-		"typescript": "^6"
+		"typescript": "^7.0.0"
 	}
 }
