@@ -36,6 +36,37 @@ body {
     }
 }
 
+#search-container {
+    display: flex;
+    gap: 5px;
+    padding: 10px;
+    background-color: #333;
+    border-radius: 4px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+
+    input {
+        flex: 1;
+        min-width: 120px;
+        padding: 8px;
+        border: 1px solid #555;
+        border-radius: 4px;
+        background-color: #222;
+        color: #fff;
+        font-size: 14px;
+
+        &:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+    }
+
+    button {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+}
+
 .btn {
     padding: 10px 20px;
     background-color: #007bff;

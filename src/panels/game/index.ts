@@ -7,19 +7,20 @@ import { createPanel } from "#panels/createPanel";
 import { uiMsg } from "@wxn0brp/flanker-dialog/msg/index";
 
 const panel = createPanel(
-    "Game preview",
-    `<div id="game-scene">
+	"Game preview",
+	`<div id="game-scene">
         <img id="background" alt="background">
+        <div id="sprites-container"></div>
         <div id="choices-container"></div>
         <div id="dialog-box"></div>
     </div>`,
-    "game-panel"
+	"game-panel",
 );
 
 export const mainScene = new GameScene(panel.qs("#game-scene"));
 mgl.mainScene = mainScene;
 
 actionEmitter.on("go-to-scene", async (cb, action: ActionGoToSceneType) => {
-    uiMsg("Go to scene: " + action.scene);
-    cb();
+	uiMsg("Go to scene: " + action.scene);
+	cb();
 });

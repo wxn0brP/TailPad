@@ -5,34 +5,34 @@ import { mgl } from "./mlg";
 import { root } from "./state";
 
 export function save() {
-    try {
-        const parsed = JSON5.parse(textarea.value);
-        root.set("data", parsed);
-        uiMsg("Saved", {
-            extraTime: -2,
-        });
-    } catch (e) {
-        // Ignore incomplete/invalid JSON5
-        console.error(e);
-        uiMsg("Invalid JSON5");
-    }
+	try {
+		const parsed = JSON5.parse(textarea.value);
+		root.set("data", parsed);
+		uiMsg("Saved", {
+			extraTime: -2,
+		});
+	} catch (e) {
+		// Ignore incomplete/invalid JSON5
+		console.error(e);
+		uiMsg("Invalid JSON5");
+	}
 }
 
 export function updateData(mutator: (obj: any) => void): void {
-    const current = root.get("data") ?? {};
-    const clone = JSON.parse(JSON.stringify(current));
+	const current = root.get("data") ?? {};
+	const clone = JSON.parse(JSON.stringify(current));
 
-    mutator(clone);
+	mutator(clone);
 
-    root.set("data", clone);
+	root.set("data", clone);
 }
 
 export function render(): void {
-    const value = root.get("data");
-    textarea.value = JSON5.stringify(value ?? {}, null, 2);
+	const value = root.get("data");
+	textarea.value = JSON5.stringify(value ?? {}, null, 2);
 }
 
 mgl.utils = {
-    render,
-    save,
-}
+	render,
+	save,
+};

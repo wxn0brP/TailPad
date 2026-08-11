@@ -18,27 +18,29 @@ const panelsContainer = qs("#panels-container");
 controller.master = panelsContainer;
 
 controller.setDefaultState([
-    "graphical-editor-panel",
-    [
-        "game-panel",
-        [
-            [
-                "editor-panel",
-                "game-controller-panel",
-                1
-            ],
-            "scene-manager-panel",
-        ],
-        1
-    ]
+	"graphical-editor-panel",
+	[
+		"game-panel",
+		[
+			[
+				"editor-panel",
+				"game-controller-panel",
+				1,
+			],
+			"scene-manager-panel",
+		],
+		1,
+	],
 ]);
 
-document.querySelectorAll<HTMLDivElement>(".panel").forEach(panel => controller.registerPanel(panel.id, panel));
+document
+	.querySelectorAll<HTMLDivElement>(".panel")
+	.forEach(panel => controller.registerPanel(panel.id, panel));
 
 controller.init();
-controller.reset()
+controller.reset();
 
 root.observeDeep(() => {
-    const value = root.get("data");
-    mainScene.sceneConfig = value?.sceneConfig ?? [];
+	const value = root.get("data");
+	mainScene.sceneConfig = value?.sceneConfig ?? [];
 });

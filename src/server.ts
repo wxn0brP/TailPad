@@ -10,119 +10,172 @@ const port = +process.env.PORT || 26159;
 const httpServer = app.listen(port);
 app.static("/", import.meta.dirname + "/../public");
 app.static("/dist", import.meta.dirname + "/../dist");
-app.static("/assets", "assets", { errorIfDirNotFound: false });
+app.static("/assets", "assets", {
+	errorIfDirNotFound: false,
+});
 
 console.log(`Listening on http://localhost:${port}`);
 
 const serverDocs: Map<string, Y.Doc> = new Map();
 
 function getServerDoc(id: string) {
-    const exists = serverDocs.get(id);
-    if (exists) return exists;
-    const doc = new Y.Doc();
-    serverDocs.set(id, doc);
-    return doc;
+	const exists = serverDocs.get(id);
+	if (exists) return exists;
+	const doc = new Y.Doc();
+	serverDocs.set(id, doc);
+	return doc;
 }
 
 async function loadFromDb() {
-    const data = await db.data.find();
-    if (!data.length) return;
-    for (const doc of data) {
-        const id = doc._id as string;
-        delete doc._id;
-        const map = getServerDoc(id).getMap("root");
-        map.set("data", doc);
-    }
+	const data = await db.data.find();
+	if (!data.length) return;
+	for (const doc of data) {
+		const id = doc._id as string;
+		delete doc._id;
+		const map = getServerDoc(id).getMap("root");
+		map.set("data", doc);
+	}
 }
 loadFromDb();
 
-const glovesLink = new GlovesLinkServer({ logs: true });
+const glovesLink = new GlovesLinkServer({
+	logs: true,
+});
 glovesLink.falconFrame(app);
 glovesLink.attachToHttpServer(httpServer);
 
 glovesLink.of("/").auth(async ({ token }) => {
-    const ok = token === "TailPad";
-    return ok ? { status: 200, user: {} } : { status: 401, msg: "Unauthorized" };
+	const ok = token === "TailPad";
+	return ok
+		? {
+				status: 200,
+				user: {},
+			}
+		: {
+				status: 401,
+				msg: "Unauthorized",
+			};
 });
 
-glovesLink.of("/").onConnect((socket) => {
-    console.log("New connection:", socket.id);
-    let docId = "";
+glovesLink.of("/").onConnect(socket => {
+	console.log("New connection:", socket.id);
+	let docId = "";
 
-    socket.on("set-doc", (id) => {
-        if (docId) glovesLink.room(docId)?.leave(socket);
-        glovesLink.room(id).join(socket);
-        docId = id;
-    });
+	socket.on("set-doc", id => {
+		if (docId) glovesLink.room(docId)?.leave(socket);
+		glovesLink.room(id).join(socket);
+		docId = id;
+	});
 
-    socket.on("y-sync", (data) => {
-        if (!docId) return console.error("y-sync", "docId is null");
-        console.log("y-sync", socket.id);
-        const clientUpdate = new Uint8Array(data);
-        Y.applyUpdate(getServerDoc(docId), clientUpdate);
+	socket.on("y-sync", data => {
+		if (!docId) return console.error("y-sync", "docId is null");
+		console.log("y-sync", socket.id);
+		const clientUpdate = new Uint8Array(data);
+		Y.applyUpdate(getServerDoc(docId), clientUpdate);
 
-        const update = Y.encodeStateAsUpdate(getServerDoc(docId));
-        socket.emit("y-sync", Array.from(update));
-    });
+		const update = Y.encodeStateAsUpdate(getServerDoc(docId));
+		socket.emit("y-sync", Array.from(update));
+	});
 
-    socket.on("y-update", (data) => {
-        if (!docId) return console.error("y-update", "docId is null");
-        console.log("y-update", socket.id);
-        const update = new Uint8Array(data);
-        Y.applyUpdate(getServerDoc(docId), update);
+	socket.on("y-update", data => {
+		if (!docId) return console.error("y-update", "docId is null");
+		console.log("y-update", socket.id);
+		const update = new Uint8Array(data);
+		Y.applyUpdate(getServerDoc(docId), update);
 
-        glovesLink.room(docId).emitWithoutSelf(socket, "y-update", data);
-    });
+		glovesLink.room(docId).emitWithoutSelf(socket, "y-update", data);
+	});
 
-    socket.on("hard-save", async () => {
-        if (!docId) return console.error("hard-save", "docId is null");
-        console.log("hard-save", socket.id);
-        const data = getServerDoc(docId).getMap("root").get("data");
-        await db.data.updateOneOrAdd({ _id: docId }, data);
-    });
+	socket.on("hard-save", async () => {
+		if (!docId) return console.error("hard-save", "docId is null");
+		console.log("hard-save", socket.id);
+		const data = getServerDoc(docId).getMap("root").get("data");
+		await db.data.updateOneOrAdd(
+			{
+				_id: docId,
+			},
+			data,
+		);
+	});
 
-    socket.on("scenes:list", async (callback) => {
-        try {
-            const scenes = await db.data.find();
-            const sceneIds = scenes.map(s => s._id);
-            callback({ err: false, data: sceneIds });
-        } catch (e) {
-            callback({ ert: true, msg: e.message });
-        }
-    });
+	socket.on("scenes:list", async callback => {
+		try {
+			const scenes = await db.data.find();
+			const sceneIds = scenes.map(s => s._id);
+			callback({
+				err: false,
+				data: sceneIds,
+			});
+		} catch (e) {
+			callback({
+				ert: true,
+				msg: e.message,
+			});
+		}
+	});
 
-    socket.on("scenes:create", async (id, callback) => {
-        try {
-            if (!id || typeof id !== "string" || id.length < 3)
-                return callback({ err: true, msg: "Invalid ID (min 3 chars)" });
+	socket.on("scenes:create", async (id, callback) => {
+		try {
+			if (!id || typeof id !== "string" || id.length < 3)
+				return callback({
+					err: true,
+					msg: "Invalid ID (min 3 chars)",
+				});
 
-            const existing = await db.data.findOne({ _id: id });
-            if (existing)
-                return callback({ err: true, msg: "Scene already exists" });
+			const existing = await db.data.findOne({
+				_id: id,
+			});
+			if (existing)
+				return callback({
+					err: true,
+					msg: "Scene already exists",
+				});
 
-            await db.data.add({ _id: id, sceneConfig: [] });
-            callback({ err: false, data: id });
-        } catch (e) {
-            callback({ err: true, msg: e.message });
-        }
-    });
+			await db.data.add({
+				_id: id,
+				sceneConfig: [],
+			});
+			callback({
+				err: false,
+				data: id,
+			});
+		} catch (e) {
+			callback({
+				err: true,
+				msg: e.message,
+			});
+		}
+	});
 
-    socket.on("scenes:delete", async (id, callback) => {
-        try {
-            if (!id || typeof id !== "string")
-                return callback({ err: true, msg: "Invalid ID" });
+	socket.on("scenes:delete", async (id, callback) => {
+		try {
+			if (!id || typeof id !== "string")
+				return callback({
+					err: true,
+					msg: "Invalid ID",
+				});
 
-            if (id === "data")
-                return callback({ err: true, msg: "Cannot delete default scene" });
+			if (id === "data")
+				return callback({
+					err: true,
+					msg: "Cannot delete default scene",
+				});
 
-            await db.data.removeOne({ _id: id });
-            if (serverDocs.has(id)) {
-                serverDocs.delete(id);
-                console.log(`Removed scene ${id} from memory.`);
-            }
-            callback({ err: false });
-        } catch (e) {
-            callback({ err: true, message: e.message });
-        }
-    });
+			await db.data.removeOne({
+				_id: id,
+			});
+			if (serverDocs.has(id)) {
+				serverDocs.delete(id);
+				console.log(`Removed scene ${id} from memory.`);
+			}
+			callback({
+				err: false,
+			});
+		} catch (e) {
+			callback({
+				err: true,
+				message: e.message,
+			});
+		}
+	});
 });
