@@ -13,6 +13,18 @@
 
 <body>
     <div id="ui-container"></div>
+    <div id="hud">
+        <button id="hud-auto" class="hud-btn">Auto</button>
+        <button id="hud-skip" class="hud-btn">Skip</button>
+        <button id="hud-history" class="hud-btn">History</button>
+    </div>
+    <div id="history-overlay" class="hidden">
+        <div class="history-modal">
+            <h2>History</h2>
+            <div id="history-list"></div>
+            <button id="history-close" class="close-button">Close</button>
+        </div>
+    </div>
     <main>
         {{ body }}
         <div id="game-scene">

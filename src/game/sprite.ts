@@ -5,12 +5,9 @@ export interface Sprite {
 }
 
 export class SpriteEngine {
-	private container: HTMLDivElement;
 	private sprites: Map<string, Sprite> = new Map();
 
-	constructor(container: HTMLDivElement) {
-		this.container = container;
-	}
+	constructor(private container: HTMLDivElement) {}
 
 	showCharacter(
 		id: string,
@@ -18,8 +15,8 @@ export class SpriteEngine {
 		position: "left" | "center" | "right",
 		transition: "fade" | "slide" | "none" = "fade",
 		transitionDuration = 500,
-	): Promise<void> {
-		return new Promise(resolve => {
+	) {
+		return new Promise<void>(resolve => {
 			const existing = this.sprites.get(id);
 			if (existing) {
 				existing.element.src = url;
@@ -47,36 +44,47 @@ export class SpriteEngine {
 
 			this.applyPosition(img, position);
 
+			let settled = false;
+			const settle = () => {
+				if (settled) return;
+				settled = true;
+				resolve();
+			};
+
+			let started = false;
+			const finishShow = () => {
+				if (started) return;
+				started = true;
+				requestAnimationFrame(() => {
+					if (transition === "slide") {
+						img.style.opacity = "1";
+						img.style.transform = "translateX(0)";
+					} else {
+						img.style.opacity = "1";
+					}
+					setTimeout(settle, transitionDuration);
+				});
+			};
+
+			img.addEventListener("load", finishShow, {
+				once: true,
+			});
+
 			img.addEventListener(
-				"load",
+				"error",
 				() => {
-					requestAnimationFrame(() => {
-						if (transition === "fade") {
-							img.style.opacity = "1";
-						} else if (transition === "slide") {
-							img.style.opacity = "1";
-							img.style.transform = "translateX(0)";
-						} else {
-							img.style.opacity = "1";
-						}
-						setTimeout(resolve, transitionDuration);
-					});
+					console.error("Sprite load error:", url);
+					settle();
 				},
 				{
 					once: true,
 				},
 			);
 
-			img.addEventListener(
-				"error",
-				() => {
-					console.error("Sprite load error:", url);
-					resolve();
-				},
-				{
-					once: true,
-				},
-			);
+			if (img.complete) {
+				if (img.naturalWidth > 0) finishShow();
+				else settle();
+			}
 		});
 	}
 
@@ -84,8 +92,8 @@ export class SpriteEngine {
 		id: string,
 		transition: "fade" | "slide" | "none" = "fade",
 		transitionDuration = 500,
-	): Promise<void> {
-		return new Promise(resolve => {
+	) {
+		return new Promise<void>(resolve => {
 			const sprite = this.sprites.get(id);
 			if (!sprite) {
 				resolve();
@@ -119,8 +127,8 @@ export class SpriteEngine {
 		id: string,
 		position: "left" | "center" | "right",
 		duration = 500,
-	): Promise<void> {
-		return new Promise(resolve => {
+	) {
+		return new Promise<void>(resolve => {
 			const sprite = this.sprites.get(id);
 			if (!sprite) {
 				resolve();
@@ -135,9 +143,18 @@ export class SpriteEngine {
 	private applyPosition(
 		element: HTMLImageElement,
 		position: "left" | "center" | "right",
-	): void {
+	) {
 		element.style.position = "absolute";
 		element.style.bottom = "0";
+		this.applyPositionStyles(element, position);
+	}
+
+	private applyPositionStyles(
+		element: HTMLElement,
+		position: "left" | "center" | "right",
+	) {
+		element.style.left = "";
+		element.style.right = "";
 
 		switch (position) {
 			case "left":
@@ -159,35 +176,18 @@ export class SpriteEngine {
 		sprite: Sprite,
 		position: "left" | "center" | "right",
 		duration: number,
-	): void {
+	) {
 		sprite.position = position;
 		sprite.element.style.transition = `left ${duration}ms, right ${duration}ms, transform ${duration}ms`;
-
-		sprite.element.style.left = "";
-		sprite.element.style.right = "";
-
-		switch (position) {
-			case "left":
-				sprite.element.style.left = "10%";
-				sprite.element.style.transform = "translateX(-50%)";
-				break;
-			case "center":
-				sprite.element.style.left = "50%";
-				sprite.element.style.transform = "translateX(-50%)";
-				break;
-			case "right":
-				sprite.element.style.right = "10%";
-				sprite.element.style.transform = "translateX(50%)";
-				break;
-		}
+		this.applyPositionStyles(sprite.element, position);
 	}
 
-	clearAll(): void {
+	clearAll() {
 		this.sprites.forEach(sprite => sprite.element.remove());
 		this.sprites.clear();
 	}
 
-	dispose(): void {
+	dispose() {
 		this.clearAll();
 	}
 }

@@ -20,6 +20,7 @@ async function loadScene(name: string) {
 		res.json(),
 	);
 	scene.sceneConfig = res;
+	scene.visitedScenes.add(name);
 	scene.dialogEngine.element.innerHTML = "";
 	scene.choicesContainer.innerHTML = "";
 }
@@ -39,10 +40,12 @@ async function startGame(savedGame?: SaveData) {
 		await loadScene(savedGame.sceneName);
 		restoreSceneState(savedGame.lastIndex);
 		scene.lastIndex.set(savedGame.lastIndex);
+		scene.variableManager.setAll(savedGame.variables ?? {});
 	} else {
 		const urlParams = new URLSearchParams(window.location.search);
 		await loadScene(urlParams.get("scene") || "master");
 		scene.lastIndex.set(-1);
+		scene.variableManager.clear();
 	}
 
 	scene.pause.set(false);
@@ -56,6 +59,7 @@ async function handleSave() {
 		saveGameToSlot(slot, {
 			sceneName,
 			lastIndex: scene.lastIndex.get(),
+			variables: scene.variableManager.getAll(),
 		});
 	}
 	scene.pause.set(false);
@@ -84,7 +88,54 @@ actionEmitter.on("go-to-scene", async (cb, action: any) => {
 	cb();
 });
 
+const autoButton = qs<HTMLButtonElement>("#hud-auto");
+const skipButton = qs<HTMLButtonElement>("#hud-skip");
+const historyOverlay = qs<HTMLDivElement>("#history-overlay");
+const historyList = qs<HTMLDivElement>("#history-list");
+
+autoButton.addEventListener("click", () => {
+	scene.autoMode.set(!scene.autoMode.get());
+});
+scene.autoMode.subscribe(value => autoButton.classList.toggle("active", value));
+
+skipButton.addEventListener("click", () => {
+	scene.skipMode.set(!scene.skipMode.get());
+});
+scene.skipMode.subscribe(value => skipButton.classList.toggle("active", value));
+
+function renderHistory() {
+	historyList.innerHTML = "";
+	const history = scene.dialogEngine.history;
+	if (!history.length) {
+		historyList.innerHTML = `<div class="history-empty">No history</div>`;
+		return;
+	}
+	for (const line of history) {
+		const item = document.createElement("div");
+		item.className = "history-line";
+		item.textContent = line;
+		historyList.appendChild(item);
+	}
+}
+
+qs("#hud-history").addEventListener("click", () => {
+	renderHistory();
+	scene.pause.set(true);
+	historyOverlay.classList.remove("hidden");
+	historyList.scrollTop = historyList.scrollHeight;
+});
+
+qs("#history-close").addEventListener("click", () => {
+	historyOverlay.classList.add("hidden");
+	scene.pause.set(false);
+});
+
 window.addEventListener("keydown", async e => {
+	if (!historyOverlay.classList.contains("hidden")) {
+		if (e.key === "Escape") historyOverlay.classList.add("hidden");
+		return;
+	}
+
 	if (e.key === "Escape" || e.key === "Backspace") {
 		scene.pause.set(true);
 		const action = await menuUI.show();

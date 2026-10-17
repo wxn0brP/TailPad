@@ -29,6 +29,7 @@ panel.qs("next-step", 1).addEventListener("click", () => {
 panel.qs("reset-step", 1).addEventListener("click", () => {
 	mainScene.background.src = "";
 	mainScene.dialogEngine.element.innerHTML = "";
+	mainScene.variableManager.clear();
 	mainScene.eventEmitter.emit("run-scene", 0);
 });
 

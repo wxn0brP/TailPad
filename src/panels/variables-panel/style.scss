@@ -1,0 +1,55 @@
+#variables-panel {
+    .variables-panel-content {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        height: 100%;
+        padding: 8px;
+        overflow: auto;
+    }
+
+    #variables-list {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        flex: 1;
+        overflow: auto;
+    }
+
+    .variables-empty {
+        opacity: 0.6;
+        font-size: 0.9em;
+        padding: 4px;
+    }
+
+    .variable-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 6px;
+        border: 1px solid #333;
+        border-radius: 4px;
+    }
+
+    .variable-name {
+        font-weight: 600;
+        flex: 1;
+    }
+
+    .variable-value {
+        opacity: 0.85;
+        font-family: monospace;
+    }
+
+    .variables-controls {
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
+    }
+
+    .variables-controls input,
+    .variables-controls select {
+        flex: 1;
+        min-width: 60px;
+    }
+}

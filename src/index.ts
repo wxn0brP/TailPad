@@ -8,30 +8,28 @@ import { mainScene } from "#panels/game";
 import "#panels/game-controller";
 import "#panels/graphical-editor-panel";
 import "#panels/scene-manager-panel";
+import "#panels/variables-panel";
 import "#style.scss";
 import "@wxn0brp/flanker-dialog/style.css";
-import { controller } from "@wxn0brp/nya-dock";
+import { column, controller, row, tabs } from "@wxn0brp/nya-dock";
 import "@wxn0brp/nya-dock/style.css";
 
 render();
 const panelsContainer = qs("#panels-container");
 controller.master = panelsContainer;
 
-controller.setDefaultState([
-	"graphical-editor-panel",
-	[
-		"game-panel",
-		[
-			[
-				"editor-panel",
-				"game-controller-panel",
-				1,
-			],
-			"scene-manager-panel",
-		],
-		1,
-	],
-]);
+controller.setDefaultState(
+	row(
+		tabs("graphical-editor-panel", "editor-panel"),
+		column(
+			"game-panel",
+			row(
+				tabs("game-controller-panel", "scene-manager-panel"),
+				"variables-panel",
+			),
+		),
+	),
+);
 
 document
 	.querySelectorAll<HTMLDivElement>(".panel")

@@ -5,6 +5,12 @@ import { FalconFrame } from "@wxn0brp/falcon-frame";
 import * as Y from "yjs";
 import { db } from "#db";
 
+const TOKEN = process.env.TAILPAD_TOKEN;
+if (!TOKEN) {
+	console.error("TAILPAD_TOKEN is not set");
+	process.exit(1);
+}
+
 const app = new FalconFrame();
 const port = +process.env.PORT || 26159;
 const httpServer = app.listen(port);
@@ -45,8 +51,7 @@ glovesLink.falconFrame(app);
 glovesLink.attachToHttpServer(httpServer);
 
 glovesLink.of("/").auth(async ({ token }) => {
-	const ok = token === "TailPad";
-	return ok
+	return token === TOKEN
 		? {
 				status: 200,
 				user: {},
@@ -108,7 +113,7 @@ glovesLink.of("/").onConnect(socket => {
 			});
 		} catch (e) {
 			callback({
-				ert: true,
+				err: true,
 				msg: e.message,
 			});
 		}
@@ -174,7 +179,7 @@ glovesLink.of("/").onConnect(socket => {
 		} catch (e) {
 			callback({
 				err: true,
-				message: e.message,
+				msg: e.message,
 			});
 		}
 	});

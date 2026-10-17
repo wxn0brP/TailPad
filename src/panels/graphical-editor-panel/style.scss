@@ -5,11 +5,47 @@
     padding: 10px;
 }
 
+.graphical-editor-toolbar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.validation-summary {
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    border: 1px solid transparent;
+
+    &.is-valid {
+        background-color: rgba(40, 167, 69, 0.15);
+        border-color: #28a745;
+    }
+
+    &.has-warnings {
+        background-color: rgba(255, 193, 7, 0.15);
+        border-color: #ffc107;
+    }
+
+    &.has-errors {
+        background-color: rgba(220, 53, 69, 0.15);
+        border-color: #dc3545;
+    }
+}
+
 .action-node {
     border: 1px solid var(--panel-border);
     border-radius: 5px;
     background-color: var(--panel-back);
     padding: 10px;
+
+    &.has-warning {
+        border-color: #ffc107;
+    }
+
+    &.has-error {
+        border-color: #dc3545;
+    }
 
     .node-header {
         display: flex;

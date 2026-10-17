@@ -1,19 +1,31 @@
+import VEE from "@wxn0brp/event-emitter";
+
 export class VariableManager {
 	private variables: Map<string, string | number | boolean> = new Map();
+	private _emitter = new VEE<{
+		change: () => void;
+	}>();
+
+	subscribe(cb: () => void) {
+		this._emitter.on("change", cb);
+		return () => this._emitter.off("change", cb);
+	}
 
 	set(
 		name: string,
 		value: string | number | boolean,
 		operation: "set" | "add" | "subtract" | "multiply" | "divide" = "set",
-	): void {
+	) {
 		if (operation === "set") {
 			this.variables.set(name, value);
+			this._emitter.emit("change");
 			return;
 		}
 
 		const current = this.variables.get(name);
 		if (current === undefined) {
 			this.variables.set(name, value);
+			this._emitter.emit("change");
 			return;
 		}
 
@@ -32,10 +44,11 @@ export class VariableManager {
 					this.variables.set(name, value !== 0 ? current / value : current);
 					break;
 			}
+			this._emitter.emit("change");
 		}
 	}
 
-	get(name: string): string | number | boolean | undefined {
+	get(name: string) {
 		return this.variables.get(name);
 	}
 
@@ -43,7 +56,7 @@ export class VariableManager {
 		variableName: string,
 		operator: "==" | "!=" | ">" | "<" | ">=" | "<=",
 		compareValue: string | number | boolean,
-	): boolean {
+	) {
 		const currentValue = this.variables.get(variableName);
 		if (currentValue === undefined) {
 			return false;
@@ -91,11 +104,21 @@ export class VariableManager {
 		return result;
 	}
 
-	clear(): void {
+	setAll(values: Record<string, string | number | boolean>) {
 		this.variables.clear();
+		for (const [key, value] of Object.entries(values ?? {})) {
+			this.variables.set(key, value);
+		}
+		this._emitter.emit("change");
 	}
 
-	delete(name: string): void {
+	clear() {
+		this.variables.clear();
+		this._emitter.emit("change");
+	}
+
+	delete(name: string) {
 		this.variables.delete(name);
+		this._emitter.emit("change");
 	}
 }

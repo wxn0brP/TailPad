@@ -73,8 +73,10 @@ ing
 
 Start the server:
 ```bash
-tailpad-server
+TAILPAD_TOKEN=your-secret tailpad-server
 ```
+
+The server requires the `TAILPAD_TOKEN` environment variable and exits when it is missing. The client must send the same token: it reads it from the `#pass=<token>` URL hash, or asks for it on start when the hash is missing. The token is remembered in `sessionStorage`, so reloading while switching scenes does not ask for it again.
 
 Build the game: (to publish)
 ```bash

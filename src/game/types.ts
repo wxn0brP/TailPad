@@ -100,6 +100,25 @@ export interface ActionConditionType extends ActionBase {
 	type: "condition";
 	branches: ConditionBranch[];
 	defaultScene?: string;
+	expression?: string;
+	scene?: string;
+}
+
+export interface RandomBranch {
+	scene: string;
+	weight?: number;
+}
+
+export interface ActionRandomBranchType extends ActionBase {
+	type: "random-branch";
+	branches: RandomBranch[];
+	defaultScene?: string;
+}
+
+export interface ActionEffectType extends ActionBase {
+	type: "effect";
+	effect: "shake" | "flash" | "fade";
+	duration?: number;
 }
 
 export type Action =
@@ -116,4 +135,6 @@ export type Action =
 	| ActionHideCharacterType
 	| ActionMoveCharacterType
 	| ActionSetVariableType
-	| ActionConditionType;
+	| ActionConditionType
+	| ActionRandomBranchType
+	| ActionEffectType;

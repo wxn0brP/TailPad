@@ -4,6 +4,7 @@ const MAX_SAVES = 5;
 export interface SaveData {
 	sceneName: string;
 	lastIndex: number;
+	variables: Record<string, string | number | boolean>;
 	timestamp: number;
 }
 

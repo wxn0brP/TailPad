@@ -1,4 +1,3 @@
-import { client } from "#api/internal/state";
 import { save } from "#api/internal/utils";
 import { createPanel } from "#panels/createPanel";
 import { uiMsg } from "@wxn0brp/flanker-dialog/msg/index";
@@ -9,10 +8,6 @@ const panel = createPanel(
 	"Editor",
 	`<textarea id="editor-textarea"></textarea>
     <div>
-        <button id="save" class="btn">Save</button>
-        <button id="hard-save" class="btn">Hard Save</button>
-        <button id="undo" class="btn">Undo</button>
-        <button id="redo" class="btn">Redo</button>
         <button id="search" class="btn">Search</button>
     </div>
     <div id="search-container" style="display: none;">
@@ -27,24 +22,7 @@ const panel = createPanel(
 );
 
 export const textarea = panel.qs<HTMLTextAreaElement>("#editor-textarea");
-const undoManager = new Y.UndoManager(ydoc.getMap("root"));
-
-panel.qs("#save").addEventListener("click", () => save());
-panel.qs("#hard-save").addEventListener("click", () => {
-	save();
-	client.emit("hard-save");
-	uiMsg("Saved to database");
-});
-
-panel.qs("#undo").addEventListener("click", () => {
-	undoManager.undo();
-	uiMsg("Undo");
-});
-
-panel.qs("#redo").addEventListener("click", () => {
-	undoManager.redo();
-	uiMsg("Redo");
-});
+export const undoManager = new Y.UndoManager(ydoc.getMap("root"));
 
 const searchContainer = panel.qs<HTMLDivElement>("#search-container");
 const searchInput = panel.qs<HTMLInputElement>("#search-input");

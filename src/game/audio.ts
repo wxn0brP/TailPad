@@ -5,6 +5,11 @@ export class AudioEngine {
 	private soundVolume = 1.0;
 
 	playMusic(url: string, loop = true, fadeIn = 0): Promise<void> {
+		if (!url || typeof url !== "string") {
+			console.error("AudioEngine: invalid url", url);
+			return Promise.resolve();
+		}
+
 		return new Promise(resolve => {
 			if (this.musicChannel) {
 				this.musicChannel.pause();
@@ -70,6 +75,11 @@ export class AudioEngine {
 	}
 
 	playSound(url: string, volume = 1.0): Promise<void> {
+		if (!url || typeof url !== "string") {
+			console.error("AudioEngine: invalid url", url);
+			return Promise.resolve();
+		}
+
 		return new Promise(resolve => {
 			const audio = new Audio(url);
 			audio.volume = volume * this.soundVolume;

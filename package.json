@@ -20,26 +20,26 @@
         "server": "bun run src/server.ts"
     },
     "dependencies": {
-        "@wxn0brp/db": "^0.112.0",
-        "@wxn0brp/db-core": "^0.11.6",
-        "@wxn0brp/event-emitter": "^0.0.5",
-        "@wxn0brp/falcon-frame": "^0.9.0",
+        "@wxn0brp/db": "^0.120.4",
+        "@wxn0brp/db-core": "^0.12.12",
+        "@wxn0brp/event-emitter": "^0.0.8",
+        "@wxn0brp/falcon-frame": "^0.9.7",
         "@wxn0brp/flanker-dialog": "^0.1.1",
-        "@wxn0brp/flanker-ui": "^0.5.2",
-        "@wxn0brp/gloves-link-client": "^0.1.2",
-        "@wxn0brp/gloves-link-server": "^0.1.2",
-        "@wxn0brp/nya-dock": "^0.0.4",
+        "@wxn0brp/flanker-ui": "^0.5.3",
+        "@wxn0brp/gloves-link-client": "^0.1.4",
+        "@wxn0brp/gloves-link-server": "^0.1.4",
+        "@wxn0brp/nya-dock": "^0.0.5",
         "html-minifier-terser": "^7.2.0",
         "json5": "^2.2.3",
-        "yjs": "^13.6.32"
+        "yjs": "^13.6.33"
     },
     "devDependencies": {
         "@types/bun": "*",
         "@types/html-minifier-terser": "^7.0.2",
         "@wxn0brp/biome": "*",
-        "esbuild": "^0.28.1",
+        "esbuild": "^0.28.2",
         "esbuild-style-plugin": "^1.6.3",
-        "sass": "^1.102.0",
+        "sass": "^1.105.2",
         "typescript": "^7"
     }
 }

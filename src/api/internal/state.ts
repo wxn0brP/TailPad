@@ -23,10 +23,30 @@ type OutcomeTypes = {
 	"scenes:delete": (id: string, callback: (res: BaseData) => void) => void;
 };
 
+const PASS_STORAGE_KEY = "tailpad-pass";
+
+function getPass() {
+	const raw = window.location.hash.slice(1);
+	if (raw) {
+		const pass = new URLSearchParams(raw).get("pass");
+		if (pass) {
+			sessionStorage.setItem(PASS_STORAGE_KEY, pass);
+			return pass;
+		}
+	}
+
+	const stored = sessionStorage.getItem(PASS_STORAGE_KEY);
+	if (stored) return stored;
+
+	const entered = prompt("Enter password") ?? "";
+	if (entered) sessionStorage.setItem(PASS_STORAGE_KEY, entered);
+	return entered;
+}
+
 export const client = new GlovesLinkClient<IncomeTypes, OutcomeTypes>("/", {
 	reConnect: true,
 	logs: true,
-	token: "TailPad",
+	token: getPass(),
 });
 
 client.on("connect_forbidden", console.error);

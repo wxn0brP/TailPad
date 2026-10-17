@@ -15,7 +15,11 @@ import {
 	ActionMoveCharacterType,
 	ActionSetVariableType,
 	ActionConditionType,
+	ActionRandomBranchType,
+	ActionEffectType,
 } from "./types";
+import { evaluateExpression } from "./expression";
+import { pickRandomBranch } from "./random";
 
 export const actionEmitter = new VEE<{
 	[event: string]: (
@@ -26,11 +30,13 @@ export const actionEmitter = new VEE<{
 	) => void;
 }>();
 
-export function sceneController(scene: GameScene) {
-	scene.eventEmitter.on("run-scene", (index: number) => {
+export function sceneController(scene: GameScene): () => void {
+	const onRunScene = (index: number) => {
 		scene.lastIndex.set(index);
 		runScene(scene, scene.sceneConfig[index], index);
-	});
+	};
+	scene.eventEmitter.on("run-scene", onRunScene);
+	return () => scene.eventEmitter.off("run-scene", onRunScene);
 }
 
 async function runScene(scene: GameScene, action: Action, index: number) {
@@ -57,19 +63,25 @@ actionEmitter.on("text", async (cb, action: ActionTextType, scene) => {
 actionEmitter.on(
 	"dialog-choice",
 	async (cb, action: ActionDialogChoiceType, scene, index) => {
-		scene.showChoices(action.choices).then(choice => {
-			actionEmitter.emit(
-				"go-to-scene",
-				() => {},
-				{
-					type: "go-to-scene",
-					scene: choice.scene,
-				},
-				scene,
-				-index,
-			);
-			cb();
-		});
+		scene
+			.showChoices(action.choices)
+			.then(choice => {
+				actionEmitter.emit(
+					"go-to-scene",
+					() => {},
+					{
+						type: "go-to-scene",
+						scene: choice.scene,
+					},
+					scene,
+					-index,
+				);
+				cb();
+			})
+			.catch(err => {
+				console.error(err);
+				cb();
+			});
 
 		if (action.text) scene.dialogEngine.write(action.text);
 	},
@@ -83,8 +95,9 @@ actionEmitter.on(
 	},
 );
 
-actionEmitter.on("delay", async (cb, action: ActionDelayType) => {
-	setTimeout(cb, action.ms);
+actionEmitter.on("delay", async (cb, action: ActionDelayType, scene) => {
+	const ms = scene?.skipMode.get() ? Math.min(action.ms, 100) : action.ms;
+	setTimeout(cb, ms);
 });
 
 actionEmitter.on(
@@ -176,6 +189,28 @@ actionEmitter.on(
 actionEmitter.on(
 	"condition",
 	async (cb, action: ActionConditionType, scene, index) => {
+		if (action.expression) {
+			const matched = evaluateExpression(action.expression, {
+				variables: scene.variableManager.getAll(),
+				visited: name => scene.visitedScenes.has(name),
+			});
+			const target = matched ? action.scene : action.defaultScene;
+			if (target) {
+				actionEmitter.emit(
+					"go-to-scene",
+					() => {},
+					{
+						type: "go-to-scene",
+						scene: target,
+					},
+					scene,
+					-index,
+				);
+			}
+			cb();
+			return;
+		}
+
 		for (const branch of action.branches) {
 			if (
 				scene.variableManager.evaluate(
@@ -214,3 +249,38 @@ actionEmitter.on(
 		cb();
 	},
 );
+
+actionEmitter.on(
+	"random-branch",
+	async (cb, action: ActionRandomBranchType, scene, index) => {
+		const target = pickRandomBranch(action.branches) ?? action.defaultScene;
+		if (target) {
+			actionEmitter.emit(
+				"go-to-scene",
+				() => {},
+				{
+					type: "go-to-scene",
+					scene: target,
+				},
+				scene,
+				-index,
+			);
+		}
+		cb();
+	},
+);
+
+actionEmitter.on("effect", async (cb, action: ActionEffectType, scene) => {
+	playEffect(scene, action.effect, action.duration ?? 500);
+	cb();
+});
+
+function playEffect(scene: GameScene, effect: string, duration: number) {
+	const element = scene.element;
+	const className = `effect-${effect}`;
+	element.style.setProperty("--effect-duration", `${duration}ms`);
+	element.classList.remove(className);
+	void element.offsetWidth;
+	element.classList.add(className);
+	setTimeout(() => element.classList.remove(className), duration);
+}

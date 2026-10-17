@@ -18,16 +18,16 @@ export function save() {
 	}
 }
 
-export function updateData(mutator: (obj: any) => void): void {
+export function updateData(mutator: (obj: any) => void) {
 	const current = root.get("data") ?? {};
-	const clone = JSON.parse(JSON.stringify(current));
+	const clone = structuredClone(current);
 
 	mutator(clone);
 
 	root.set("data", clone);
 }
 
-export function render(): void {
+export function render() {
 	const value = root.get("data");
 	textarea.value = JSON5.stringify(value ?? {}, null, 2);
 }
