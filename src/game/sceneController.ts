@@ -32,15 +32,29 @@ export const actionEmitter = new VEE<{
 
 export function sceneController(scene: GameScene): () => void {
 	const onRunScene = (index: number) => {
+		if (index >= scene.sceneConfig.length) {
+			scene.eventEmitter.emit("scenes-end");
+			return;
+		}
 		scene.lastIndex.set(index);
 		runScene(scene, scene.sceneConfig[index], index);
 	};
+	const onPauseChange = (paused: boolean) => {
+		if (paused) return;
+		const index = scene.pausedIndex;
+		if (index === null) return;
+		scene.pausedIndex = null;
+		scene.eventEmitter.emit("run-scene", index + 1);
+	};
 	scene.eventEmitter.on("run-scene", onRunScene);
+	scene.pause.subscribe(onPauseChange);
 	return () => scene.eventEmitter.off("run-scene", onRunScene);
 }
 
 async function runScene(scene: GameScene, action: Action, index: number) {
 	if (!action) return console.error("No action", index, scene);
+
+	const session = scene.sessionId;
 
 	if (action.noWaitForEnd) {
 		actionEmitter.emit(action.type, () => {}, action, scene, index);
@@ -50,9 +64,15 @@ async function runScene(scene: GameScene, action: Action, index: number) {
 		});
 	}
 
+	if (scene.sessionId !== session) return;
 	if (index === scene.sceneConfig.length - 1)
 		return scene.eventEmitter.emit("scenes-end");
-	if (scene.pause.get()) return scene.eventEmitter.emit("pause", index);
+
+	if (scene.pause.get()) {
+		scene.pausedIndex = index;
+		return scene.eventEmitter.emit("pause", index);
+	}
+
 	scene.eventEmitter.emit("run-scene", index + 1);
 }
 
@@ -107,6 +127,7 @@ actionEmitter.on(
 			action.url,
 			action.loop ?? true,
 			action.fadeIn ?? 0,
+			action.force ?? false,
 		);
 		cb();
 	},

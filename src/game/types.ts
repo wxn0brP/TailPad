@@ -40,6 +40,7 @@ export interface ActionPlayMusicType extends ActionBase {
 	url: string;
 	loop?: boolean;
 	fadeIn?: number;
+	force?: boolean;
 }
 
 export interface ActionStopMusicType extends ActionBase {

@@ -1,32 +1,53 @@
+export interface MusicState {
+	url: string;
+	loop: boolean;
+	currentTime: number;
+}
+
 export class AudioEngine {
 	private musicChannel: HTMLAudioElement | null = null;
-	private soundChannel: HTMLAudioElement | null = null;
+	private musicUrl: string | null = null;
+	private musicLoop = true;
 	private musicVolume = 1.0;
 	private soundVolume = 1.0;
+	private sounds = new Map<HTMLAudioElement, number>();
 
-	playMusic(url: string, loop = true, fadeIn = 0): Promise<void> {
+	playMusic(
+		url: string,
+		loop = true,
+		fadeIn = 0,
+		force = false,
+	): Promise<void> {
 		if (!url || typeof url !== "string") {
 			console.error("AudioEngine: invalid url", url);
 			return Promise.resolve();
 		}
 
-		return new Promise(resolve => {
-			if (this.musicChannel) {
-				this.musicChannel.pause();
-				this.musicChannel.src = "";
-			}
-
-			this.musicChannel = new Audio(url);
+		if (!force && this.musicChannel && this.musicUrl === url) {
+			this.musicLoop = loop;
 			this.musicChannel.loop = loop;
-			this.musicChannel.volume = fadeIn > 0 ? 0 : this.musicVolume;
+			if (this.musicChannel.paused)
+				this.musicChannel.play().catch(console.error);
+			return Promise.resolve();
+		}
 
-			this.musicChannel.addEventListener(
+		return new Promise(resolve => {
+			this.resetMusic();
+
+			const audio = new Audio(url);
+			this.musicChannel = audio;
+			this.musicUrl = url;
+			this.musicLoop = loop;
+			audio.loop = loop;
+			audio.volume = fadeIn > 0 ? 0 : this.musicVolume;
+
+			audio.addEventListener(
 				"canplaythrough",
 				() => {
-					this.musicChannel!.play().catch(console.error);
+					audio.play().catch(console.error);
 
 					if (fadeIn > 0) {
-						this.fadeInAudio(this.musicChannel!, fadeIn, this.musicVolume);
+						this.fadeInAudio(audio, fadeIn, this.musicVolume);
 					}
 
 					resolve();
@@ -36,10 +57,14 @@ export class AudioEngine {
 				},
 			);
 
-			this.musicChannel.addEventListener(
+			audio.addEventListener(
 				"error",
 				e => {
 					console.error("Music load error:", e);
+					if (this.musicChannel === audio) {
+						this.musicChannel = null;
+						this.musicUrl = null;
+					}
 					resolve();
 				},
 				{
@@ -47,30 +72,31 @@ export class AudioEngine {
 				},
 			);
 
-			this.musicChannel.load();
+			audio.load();
 		});
 	}
 
 	stopMusic(fadeOut = 0): Promise<void> {
 		return new Promise(resolve => {
-			if (!this.musicChannel) {
+			const channel = this.musicChannel;
+			if (!channel) {
+				this.musicUrl = null;
 				resolve();
 				return;
 			}
 
-			if (fadeOut > 0) {
-				this.fadeOutAudio(this.musicChannel, fadeOut, () => {
-					this.musicChannel!.pause();
-					this.musicChannel!.src = "";
-					this.musicChannel = null;
-					resolve();
-				});
-			} else {
-				this.musicChannel.pause();
-				this.musicChannel.src = "";
-				this.musicChannel = null;
+			this.musicUrl = null;
+			this.musicLoop = true;
+
+			const finish = () => {
+				channel.pause();
+				channel.src = "";
+				if (this.musicChannel === channel) this.musicChannel = null;
 				resolve();
-			}
+			};
+
+			if (fadeOut > 0) this.fadeOutAudio(channel, fadeOut, finish);
+			else finish();
 		});
 	}
 
@@ -82,7 +108,13 @@ export class AudioEngine {
 
 		return new Promise(resolve => {
 			const audio = new Audio(url);
+			this.sounds.set(audio, volume);
 			audio.volume = volume * this.soundVolume;
+
+			const forget = () => {
+				this.sounds.delete(audio);
+				audio.src = "";
+			};
 
 			audio.addEventListener(
 				"canplaythrough",
@@ -98,6 +130,7 @@ export class AudioEngine {
 			audio.addEventListener(
 				"ended",
 				() => {
+					forget();
 					resolve();
 				},
 				{
@@ -109,6 +142,7 @@ export class AudioEngine {
 				"error",
 				e => {
 					console.error("Sound load error:", e);
+					forget();
 					resolve();
 				},
 				{
@@ -118,6 +152,37 @@ export class AudioEngine {
 
 			audio.load();
 		});
+	}
+
+	/** Snapshot of the background music, used by the save system. */
+	getMusicState(): MusicState | null {
+		if (!this.musicChannel || !this.musicUrl) return null;
+		return {
+			url: this.musicUrl,
+			loop: this.musicLoop,
+			currentTime: this.musicChannel.currentTime || 0,
+		};
+	}
+
+	async restoreMusic(state?: MusicState | null) {
+		if (!state?.url) {
+			await this.stopMusic();
+			return;
+		}
+
+		if (this.musicChannel && this.musicUrl === state.url) {
+			this.musicLoop = state.loop ?? true;
+			this.musicChannel.loop = this.musicLoop;
+			if (this.musicChannel.paused)
+				await this.musicChannel.play().catch(console.error);
+			if (state.currentTime > 0)
+				this.musicChannel.currentTime = state.currentTime;
+			return;
+		}
+
+		await this.playMusic(state.url, state.loop ?? true, 0, true);
+		if (this.musicChannel && state.currentTime > 0)
+			this.musicChannel.currentTime = state.currentTime;
 	}
 
 	setVolume(channel: "music" | "sound", volume: number): void {
@@ -130,7 +195,17 @@ export class AudioEngine {
 			}
 		} else {
 			this.soundVolume = clampedVolume;
+			for (const [audio, baseVolume] of this.sounds) {
+				audio.volume = baseVolume * clampedVolume;
+			}
 		}
+	}
+
+	private resetMusic(): void {
+		if (!this.musicChannel) return;
+		this.musicChannel.pause();
+		this.musicChannel.src = "";
+		this.musicChannel = null;
 	}
 
 	private fadeInAudio(
@@ -176,15 +251,13 @@ export class AudioEngine {
 	}
 
 	dispose(): void {
-		if (this.musicChannel) {
-			this.musicChannel.pause();
-			this.musicChannel.src = "";
-			this.musicChannel = null;
+		this.resetMusic();
+		this.musicUrl = null;
+		this.musicLoop = true;
+		for (const audio of this.sounds.keys()) {
+			audio.pause();
+			audio.src = "";
 		}
-		if (this.soundChannel) {
-			this.soundChannel.pause();
-			this.soundChannel.src = "";
-			this.soundChannel = null;
-		}
+		this.sounds.clear();
 	}
 }

@@ -1,5 +1,6 @@
 import { readFileSync } from "fs";
 import JSON5 from "json5";
+import { parseArgs } from "node:util";
 import { resolve } from "path";
 
 export interface Config {
@@ -12,9 +13,22 @@ export interface Config {
 	body?: string;
 }
 
-export const isDev = process.argv.includes("--dev");
+const { values, positionals } = parseArgs({
+	args: process.argv.slice(2),
+	allowPositionals: true,
+	options: {
+		dev: {
+			type: "boolean",
+			default: false,
+		},
+	},
+});
+
+export const projectDir = resolve(positionals[0] ?? process.cwd());
+export const isDev = values.dev === true;
 export const config = JSON5.parse(
-	readFileSync("config.json5", "utf-8"),
+	readFileSync(resolve(projectDir, "config.json5"), "utf-8"),
 ) as Config;
-export const outdir = resolve(config.outdir ?? "game-build") + "/";
+export const assetsDir = resolve(projectDir, "assets");
+export const outdir = resolve(projectDir, config.outdir ?? "game-build") + "/";
 export const baseDir = import.meta.dirname + "/../../";

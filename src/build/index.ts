@@ -2,9 +2,8 @@
 
 import { cpSync, existsSync, mkdirSync, rmSync } from "fs";
 import { buildCode } from "./code";
-import { outdir } from "./config";
+import { assetsDir, outdir, projectDir } from "./config";
 import { buildHtml } from "./html";
-import { buildDb } from "./db";
 
 if (existsSync(outdir))
 	rmSync(outdir, {
@@ -18,13 +17,18 @@ mkdirSync(outdir, {
 await buildCode();
 await buildHtml();
 
-if (existsSync("assets"))
-	cpSync("assets", outdir + "assets", {
-		recursive: true,
-	});
+if (!existsSync(assetsDir))
+	throw new Error(`No assets directory in ${projectDir}`);
 
-if (!existsSync(outdir + "assets/scenes"))
+cpSync(assetsDir, outdir + "assets", {
+	recursive: true,
+});
+
+if (!existsSync(outdir + "assets/scenes")) {
+	console.warn(
+		"No assets/scenes directory in project, game will not have scenes",
+	);
 	mkdirSync(outdir + "assets/scenes", {
 		recursive: true,
 	});
-await buildDb();
+}

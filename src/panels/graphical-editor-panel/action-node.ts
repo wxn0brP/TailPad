@@ -7,7 +7,7 @@ import {
 	createSelectField,
 	createTextField,
 } from "./field-helpers";
-import { actionRenderers } from "./renderers";
+import { actionRenderers, renderFallback } from "./renderers";
 import { updateField } from "./updates";
 
 export function createActionNode(action: Action, index: number) {
@@ -93,9 +93,7 @@ export function createActionNode(action: Action, index: number) {
 		),
 	);
 
-	const renderer = actionRenderers[action.type];
-	if (!renderer) throw new Error(`Unknown action type: ${action.type}`);
-
+	const renderer = actionRenderers[action.type] ?? renderFallback;
 	renderer(content, action, index);
 
 	node.appendChild(header);

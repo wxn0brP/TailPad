@@ -102,6 +102,24 @@
     }
 }
 
+.action-fallback-warning {
+    font-size: 0.85em;
+    color: #ffc107;
+}
+
+.action-json-editor {
+    width: 100%;
+    min-height: 120px;
+    padding: 6px;
+    border: 1px solid var(--panel-border);
+    border-radius: 4px;
+    background-color: #333;
+    color: var(--txt);
+    font-family: monospace;
+    font-size: 12px;
+    resize: vertical;
+}
+
 .node-btn,
 .add-action-btn,
 .add-choice-btn,

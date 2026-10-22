@@ -7,6 +7,7 @@ import "#panels/editor-panel";
 import { mainScene } from "#panels/game";
 import "#panels/game-controller";
 import "#panels/graphical-editor-panel";
+import "#panels/project-panel";
 import "#panels/scene-manager-panel";
 import "#panels/variables-panel";
 import "#style.scss";
@@ -24,7 +25,7 @@ controller.setDefaultState(
 		column(
 			"game-panel",
 			row(
-				tabs("game-controller-panel", "scene-manager-panel"),
+				tabs("game-controller-panel", "scene-manager-panel", "project-panel"),
 				"variables-panel",
 			),
 		),

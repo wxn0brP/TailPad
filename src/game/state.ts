@@ -7,6 +7,7 @@ import { sceneController } from "./sceneController";
 import { AudioEngine } from "./audio";
 import { SpriteEngine } from "./sprite";
 import { VariableManager } from "./variables";
+import { renderRichText } from "./richText";
 
 export class GameScene {
 	background: HTMLImageElement;
@@ -23,6 +24,8 @@ export class GameScene {
 	autoMode = new ReactiveCell(false);
 	skipMode = new ReactiveCell(false);
 	visitedScenes = new Set<string>();
+	sessionId = 0;
+	pausedIndex: number | null = null;
 	private _sceneControllerCleanup: (() => void) | null = null;
 
 	constructor(public element: HTMLDivElement) {
@@ -44,6 +47,16 @@ export class GameScene {
 		this._sceneControllerCleanup = sceneController(this);
 	}
 
+	beginSession(clearHistory = true) {
+		this.sessionId++;
+		this.pausedIndex = null;
+		this.pause.set(true);
+		this.dialogEngine.abort(clearHistory);
+		this.spriteEngine.clearAll();
+		this.choicesContainer.innerHTML = "";
+		this.visitedScenes.clear();
+	}
+
 	setBackground(url: string) {
 		this.background.src = url;
 	}
@@ -55,7 +68,9 @@ export class GameScene {
 		return new Promise(resolve => {
 			for (const choice of choices) {
 				const button = document.createElement("button");
-				button.textContent = choice.text;
+				button.appendChild(
+					renderRichText(choice.text, this.variableManager.getAll()),
+				);
 				button.onclick = () => {
 					this.choicesContainer.innerHTML = "";
 					resolve(choice);
@@ -69,7 +84,12 @@ export class GameScene {
 		this.eventEmitter.emit("run-scene", this.lastIndex.get() + 1);
 	}
 
+	runSceneAt(index: number) {
+		this.eventEmitter.emit("run-scene", Math.max(0, index));
+	}
+
 	dispose() {
+		this.sessionId++;
 		this.dialogEngine.cancel();
 		this.audioEngine.dispose();
 		this.spriteEngine.dispose();

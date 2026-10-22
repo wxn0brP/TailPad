@@ -43,7 +43,7 @@ function refreshScenes() {
                 <span>${sceneId} ${sceneId === currentScene ? "(current)" : ""}</span>
                 <div class="scene-item-controls">
                     <button class="btn go-btn" data-scene-id="${sceneId}">Go</button>
-                    <button class="btn delete-btn" data-scene-id="${sceneId}" ${sceneId === "data" ? "disabled" : ""}>Delete</button>
+                    <button class="btn delete-btn" data-scene-id="${sceneId}">Delete</button>
                 </div>
             `;
 			sceneList.appendChild(li);
@@ -91,5 +91,9 @@ createSceneBtn.addEventListener("click", () => {
 });
 
 client.on("connect", () => {
+	refreshScenes();
+});
+
+client.on("scenes:changed", () => {
 	refreshScenes();
 });

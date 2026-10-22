@@ -1,7 +1,13 @@
-export interface Sprite {
+export type SpritePosition = "left" | "center" | "right";
+
+export interface SpriteState {
 	id: string;
+	url: string;
+	position: SpritePosition;
+}
+
+export interface Sprite extends SpriteState {
 	element: HTMLImageElement;
-	position: "left" | "center" | "right";
 }
 
 export class SpriteEngine {
@@ -12,13 +18,14 @@ export class SpriteEngine {
 	showCharacter(
 		id: string,
 		url: string,
-		position: "left" | "center" | "right",
+		position: SpritePosition,
 		transition: "fade" | "slide" | "none" = "fade",
 		transitionDuration = 500,
 	) {
 		return new Promise<void>(resolve => {
 			const existing = this.sprites.get(id);
 			if (existing) {
+				existing.url = url;
 				existing.element.src = url;
 				this.moveToPosition(existing, position, transitionDuration);
 				resolve();
@@ -37,6 +44,7 @@ export class SpriteEngine {
 
 			const sprite: Sprite = {
 				id,
+				url,
 				element: img,
 				position,
 			};
@@ -123,11 +131,7 @@ export class SpriteEngine {
 		});
 	}
 
-	moveCharacter(
-		id: string,
-		position: "left" | "center" | "right",
-		duration = 500,
-	) {
+	moveCharacter(id: string, position: SpritePosition, duration = 500) {
 		return new Promise<void>(resolve => {
 			const sprite = this.sprites.get(id);
 			if (!sprite) {
@@ -149,10 +153,7 @@ export class SpriteEngine {
 		this.applyPositionStyles(element, position);
 	}
 
-	private applyPositionStyles(
-		element: HTMLElement,
-		position: "left" | "center" | "right",
-	) {
+	private applyPositionStyles(element: HTMLElement, position: SpritePosition) {
 		element.style.left = "";
 		element.style.right = "";
 
@@ -174,7 +175,7 @@ export class SpriteEngine {
 
 	private moveToPosition(
 		sprite: Sprite,
-		position: "left" | "center" | "right",
+		position: SpritePosition,
 		duration: number,
 	) {
 		sprite.position = position;
@@ -185,6 +186,28 @@ export class SpriteEngine {
 	clearAll() {
 		this.sprites.forEach(sprite => sprite.element.remove());
 		this.sprites.clear();
+	}
+
+	getState(): SpriteState[] {
+		return [
+			...this.sprites.values(),
+		].map(({ id, url, position }) => ({
+			id,
+			url,
+			position,
+		}));
+	}
+
+	restoreState(state: SpriteState[] = []) {
+		this.clearAll();
+		for (const sprite of state)
+			void this.showCharacter(
+				sprite.id,
+				sprite.url,
+				sprite.position,
+				"none",
+				0,
+			);
 	}
 
 	dispose() {

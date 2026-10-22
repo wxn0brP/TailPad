@@ -1,9 +1,12 @@
 import "@wxn0brp/flanker-ui/html";
 
+import type { MusicState } from "#game/audio";
+import { renderRichText } from "#game/richText";
 import { actionEmitter } from "#game/sceneController";
+import type { SpriteState } from "#game/sprite";
 import { GameScene } from "#game/state";
 import "#game/style.scss";
-import { ActionBackgroundType } from "#game/types";
+import { ActionBackgroundType, ActionPlayMusicType } from "#game/types";
 import { MenuUI } from "./menu-ui";
 import { getSaves, SaveData, saveGameToSlot } from "./save";
 import { SaveLoadUI } from "./save-ui";
@@ -35,21 +38,80 @@ function restoreSceneState(index: number) {
 	}
 }
 
+function restoreMusicState(index: number): MusicState | null {
+	for (let i = index; i >= 0; i--) {
+		const action = scene.sceneConfig[i];
+		if (!action) continue;
+		if (action.type === "stop-music") return null;
+		if (action.type === "play-music") {
+			const music = action as ActionPlayMusicType;
+			return {
+				url: music.url,
+				loop: music.loop ?? true,
+				currentTime: 0,
+			};
+		}
+	}
+	return null;
+}
+
+function restoreCharacters(savedGame: SaveData) {
+	if (savedGame.characters) {
+		scene.spriteEngine.restoreState(savedGame.characters);
+		return;
+	}
+
+	const characters = new Map<string, SpriteState>();
+	for (let i = 0; i <= savedGame.lastIndex; i++) {
+		const action = scene.sceneConfig[i];
+		if (!action) continue;
+
+		if (action.type === "show-character") {
+			characters.set(action.id, {
+				id: action.id,
+				url: action.url,
+				position: action.position,
+			});
+		} else if (action.type === "hide-character") {
+			characters.delete(action.id);
+		} else if (action.type === "move-character") {
+			const sprite = characters.get(action.id);
+			if (sprite) sprite.position = action.position;
+		}
+	}
+
+	scene.spriteEngine.restoreState([
+		...characters.values(),
+	]);
+}
+
 async function startGame(savedGame?: SaveData) {
+	scene.beginSession(true);
+
 	if (savedGame) {
 		await loadScene(savedGame.sceneName);
 		restoreSceneState(savedGame.lastIndex);
-		scene.lastIndex.set(savedGame.lastIndex);
+		restoreCharacters(savedGame);
 		scene.variableManager.setAll(savedGame.variables ?? {});
+		if (savedGame.visitedScenes)
+			scene.visitedScenes = new Set(savedGame.visitedScenes);
+		scene.visitedScenes.add(savedGame.sceneName);
+		await scene.audioEngine.restoreMusic(
+			savedGame.music !== undefined
+				? savedGame.music
+				: restoreMusicState(savedGame.lastIndex),
+		);
 	} else {
 		const urlParams = new URLSearchParams(window.location.search);
 		await loadScene(urlParams.get("scene") || "master");
 		scene.lastIndex.set(-1);
 		scene.variableManager.clear();
+		await scene.audioEngine.stopMusic();
 	}
 
 	scene.pause.set(false);
-	scene.nextStep();
+	if (savedGame) scene.runSceneAt(savedGame.lastIndex);
+	else scene.runSceneAt(0);
 }
 
 async function handleSave() {
@@ -60,6 +122,11 @@ async function handleSave() {
 			sceneName,
 			lastIndex: scene.lastIndex.get(),
 			variables: scene.variableManager.getAll(),
+			music: scene.audioEngine.getMusicState(),
+			characters: scene.spriteEngine.getState(),
+			visitedScenes: [
+				...scene.visitedScenes,
+			],
 		});
 	}
 	scene.pause.set(false);
@@ -113,7 +180,7 @@ function renderHistory() {
 	for (const line of history) {
 		const item = document.createElement("div");
 		item.className = "history-line";
-		item.textContent = line;
+		item.appendChild(renderRichText(line));
 		historyList.appendChild(item);
 	}
 }
@@ -130,14 +197,14 @@ qs("#history-close").addEventListener("click", () => {
 	scene.pause.set(false);
 });
 
-window.addEventListener("keydown", async e => {
-	if (!historyOverlay.classList.contains("hidden")) {
-		if (e.key === "Escape") historyOverlay.classList.add("hidden");
-		return;
-	}
+let uiBusy = false;
 
-	if (e.key === "Escape" || e.key === "Backspace") {
-		scene.pause.set(true);
+async function openMenu() {
+	if (uiBusy || !historyOverlay.classList.contains("hidden")) return;
+	uiBusy = true;
+	scene.pause.set(true);
+
+	try {
 		const action = await menuUI.show();
 		switch (action) {
 			case "save":
@@ -146,25 +213,42 @@ window.addEventListener("keydown", async e => {
 			case "load":
 				await handleLoad();
 				break;
-			case "resume":
+			default:
 				scene.pause.set(false);
-				break;
 		}
+	} finally {
+		uiBusy = false;
 	}
+}
+
+qs("#hud-menu").addEventListener("click", () => void openMenu());
+
+window.addEventListener("keydown", async e => {
+	if (!historyOverlay.classList.contains("hidden")) {
+		if (e.key === "Escape") {
+			historyOverlay.classList.add("hidden");
+			scene.pause.set(false);
+		}
+		return;
+	}
+
+	if (e.key === "Escape" || e.key === "Backspace") await openMenu();
 });
 
 async function main() {
-	const slot = await saveLoadUI.show("load");
-	if (slot !== null) {
-		const saves = getSaves();
-		const savedGame = saves[slot];
-		if (savedGame) {
-			await startGame(savedGame);
-		} else {
-			await startGame();
+	uiBusy = true;
+	try {
+		const slot = await saveLoadUI.show("load", true);
+		if (slot !== null) {
+			const savedGame = getSaves()[slot];
+			if (savedGame) {
+				await startGame(savedGame);
+				return;
+			}
 		}
-	} else {
-		await startGame(); // New Game
+		await startGame();
+	} finally {
+		uiBusy = false;
 	}
 }
 

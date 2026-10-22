@@ -53,6 +53,7 @@ export function createDefaultAction(newType: string): Action {
 				url: "",
 				loop: true,
 				fadeIn: 0,
+				force: false,
 			};
 		case "stop-music":
 			return {

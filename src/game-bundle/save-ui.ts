@@ -5,14 +5,16 @@ type Mode = "save" | "load";
 export class SaveLoadUI {
 	_container: HTMLElement;
 	_mode: Mode;
+	_allowNewGame = false;
 	_resolve: (value: number | null) => void;
 
 	constructor() {
 		this._container = qs("#ui-container")!;
 	}
 
-	show(mode: Mode): Promise<number | null> {
+	show(mode: Mode, allowNewGame = false): Promise<number | null> {
 		this._mode = mode;
+		this._allowNewGame = allowNewGame;
 		this._render();
 		return new Promise(resolve => {
 			this._resolve = resolve;
@@ -55,7 +57,8 @@ export class SaveLoadUI {
 
 		const closeButton = document.createElement("button");
 		closeButton.className = "close-button";
-		closeButton.textContent = this._mode === "load" ? "New Game" : "Cancel";
+		closeButton.textContent =
+			this._mode === "load" && this._allowNewGame ? "New Game" : "Cancel";
 		closeButton.onclick = () => this._close(null);
 
 		modal.appendChild(slotsContainer);

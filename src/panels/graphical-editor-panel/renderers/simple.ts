@@ -47,6 +47,11 @@ export const renderSimple: ActionRenderer = (content, action, index) => {
 					updateField(index, "fadeIn", v),
 				),
 			);
+			content.appendChild(
+				createBooleanField("force", action.force ?? false, v =>
+					updateField(index, "force", v),
+				),
+			);
 			break;
 		case "stop-music":
 			content.appendChild(

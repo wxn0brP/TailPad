@@ -8,7 +8,9 @@ interface BaseData<T = undefined> {
 	data: T;
 }
 
-type IncomeTypes = {};
+type IncomeTypes = {
+	"scenes:changed": () => void;
+};
 
 type OutcomeTypes = {
 	"set-doc": (id: string) => void;

@@ -1,3 +1,6 @@
+import type { MusicState } from "#game/audio";
+import type { SpriteState } from "#game/sprite";
+
 const SAVE_KEY = "tailpad-game-saves";
 const MAX_SAVES = 5;
 
@@ -5,6 +8,9 @@ export interface SaveData {
 	sceneName: string;
 	lastIndex: number;
 	variables: Record<string, string | number | boolean>;
+	music?: MusicState | null;
+	characters?: SpriteState[];
+	visitedScenes?: string[];
 	timestamp: number;
 }
 

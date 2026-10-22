@@ -79,12 +79,12 @@ function createSaveToolbar() {
 	saveButton.addEventListener("click", () => save());
 
 	const hardSaveButton = document.createElement("button");
-	hardSaveButton.textContent = "Hard Save";
+	hardSaveButton.textContent = "Save now";
 	hardSaveButton.className = "btn";
 	hardSaveButton.addEventListener("click", () => {
 		save();
 		client.emit("hard-save");
-		uiMsg("Saved to database");
+		uiMsg("Saved");
 	});
 
 	const undoButton = document.createElement("button");
@@ -131,10 +131,13 @@ function createValidationSummary(issues: ValidationIssue[]) {
 renderGraphicalEditor();
 root.observeDeep(renderGraphicalEditor);
 
-client.on("connect", () => {
+function refreshKnownScenes() {
 	client.emit("scenes:list", res => {
 		if (res.err) return;
 		knownScenes = res.data;
 		renderGraphicalEditor();
 	});
-});
+}
+
+client.on("connect", refreshKnownScenes);
+client.on("scenes:changed", refreshKnownScenes);

@@ -7,7 +7,12 @@ import { root } from "./state";
 export function save() {
 	try {
 		const parsed = JSON5.parse(textarea.value);
-		root.set("data", parsed);
+		const sceneConfig = Array.isArray(parsed) ? parsed : parsed?.sceneConfig;
+		if (!Array.isArray(sceneConfig))
+			throw new Error("Scene must be an array of actions");
+		root.set("data", {
+			sceneConfig,
+		});
 		uiMsg("Saved", {
 			extraTime: -2,
 		});
@@ -29,7 +34,8 @@ export function updateData(mutator: (obj: any) => void) {
 
 export function render() {
 	const value = root.get("data");
-	textarea.value = JSON5.stringify(value ?? {}, null, 2);
+	const sceneConfig = Array.isArray(value) ? value : (value?.sceneConfig ?? []);
+	textarea.value = JSON5.stringify(sceneConfig, null, 2);
 }
 
 mgl.utils = {

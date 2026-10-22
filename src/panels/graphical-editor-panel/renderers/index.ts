@@ -1,9 +1,11 @@
 import { renderCharacter } from "./character";
 import { renderCondition } from "./condition";
 import { renderDialogChoice } from "./dialog-choice";
+import { renderFallback } from "./fallback";
 import { renderRandomBranch } from "./random-branch";
 import { renderSimple } from "./simple";
 import type { ActionRenderer } from "./types";
+import { renderVariable } from "./variable";
 
 export const actionRenderers: Record<string, ActionRenderer> = {
 	text: renderSimple,
@@ -14,6 +16,7 @@ export const actionRenderers: Record<string, ActionRenderer> = {
 	"stop-music": renderSimple,
 	"play-sound": renderSimple,
 	"set-volume": renderSimple,
+	"set-variable": renderVariable,
 	effect: renderSimple,
 	"show-character": renderCharacter,
 	"hide-character": renderCharacter,
@@ -22,3 +25,5 @@ export const actionRenderers: Record<string, ActionRenderer> = {
 	condition: renderCondition,
 	"random-branch": renderRandomBranch,
 };
+
+export { renderFallback };
