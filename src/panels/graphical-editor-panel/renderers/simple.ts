@@ -1,72 +1,76 @@
 import {
 	createBooleanField,
 	createNumberField,
+	createSceneField,
 	createSelectField,
+	createTextareaField,
 	createTextField,
 } from "../field-helpers";
 import { updateField } from "../updates";
 import { ActionRenderer } from "./types";
 
-export const renderSimple: ActionRenderer = (content, action, index) => {
+export const renderSimple: ActionRenderer = (content, action, ctx) => {
+	const { path } = ctx;
+
 	switch (action.type) {
 		case "text":
 			content.appendChild(
-				createTextField("text", action.text, v =>
-					updateField(index, "text", v),
+				createTextareaField("text", action.text, v =>
+					updateField(path, "text", v),
 				),
 			);
 			break;
 		case "background":
 			content.appendChild(
-				createTextField("url", action.url, v => updateField(index, "url", v)),
+				createTextField("url", action.url, v => updateField(path, "url", v)),
 			);
 			break;
 		case "delay":
 			content.appendChild(
-				createNumberField("ms", action.ms, v => updateField(index, "ms", v)),
+				createNumberField("ms", action.ms, v => updateField(path, "ms", v)),
 			);
 			break;
 		case "go-to-scene":
 			content.appendChild(
-				createTextField("scene", action.scene, v =>
-					updateField(index, "scene", v),
+				createSceneField("scene", action.scene, v =>
+					updateField(path, "scene", v),
 				),
 			);
 			break;
 		case "play-music":
 			content.appendChild(
-				createTextField("url", action.url, v => updateField(index, "url", v)),
+				createTextField("url", action.url, v => updateField(path, "url", v)),
 			);
 			content.appendChild(
 				createBooleanField("loop", action.loop ?? true, v =>
-					updateField(index, "loop", v),
+					updateField(path, "loop", v),
 				),
 			);
 			content.appendChild(
 				createNumberField("fadeIn", action.fadeIn ?? 0, v =>
-					updateField(index, "fadeIn", v),
+					updateField(path, "fadeIn", v),
 				),
 			);
 			content.appendChild(
 				createBooleanField("force", action.force ?? false, v =>
-					updateField(index, "force", v),
+					updateField(path, "force", v),
 				),
 			);
 			break;
 		case "stop-music":
 			content.appendChild(
 				createNumberField("fadeOut", action.fadeOut ?? 0, v =>
-					updateField(index, "fadeOut", v),
+					updateField(path, "fadeOut", v),
 				),
 			);
 			break;
 		case "play-sound":
 			content.appendChild(
-				createTextField("url", action.url, v => updateField(index, "url", v)),
+				createTextField("url", action.url, v => updateField(path, "url", v)),
 			);
 			content.appendChild(
 				createNumberField("volume", action.volume ?? 1.0, v =>
-					updateField(index, "volume", v),
+					updateField(path, "volume", v),
 				),
 			);
 			break;
@@ -79,12 +83,12 @@ export const renderSimple: ActionRenderer = (content, action, index) => {
 						"music",
 						"sound",
 					],
-					v => updateField(index, "channel", v),
+					v => updateField(path, "channel", v),
 				),
 			);
 			content.appendChild(
 				createNumberField("volume", action.volume, v =>
-					updateField(index, "volume", v),
+					updateField(path, "volume", v),
 				),
 			);
 			break;
@@ -98,12 +102,12 @@ export const renderSimple: ActionRenderer = (content, action, index) => {
 						"flash",
 						"fade",
 					],
-					v => updateField(index, "effect", v),
+					v => updateField(path, "effect", v),
 				),
 			);
 			content.appendChild(
 				createNumberField("duration", action.duration ?? 500, v =>
-					updateField(index, "duration", v),
+					updateField(path, "duration", v),
 				),
 			);
 			break;

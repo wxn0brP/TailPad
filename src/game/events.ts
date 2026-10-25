@@ -1,5 +1,7 @@
+import type { ActionPath } from "./types";
+
 export type GameEvents = {
-	"run-scene": (index: number) => void;
+	"run-scene": (cursor: number | ActionPath) => void;
 	"scenes-end": () => void;
-	pause: (index: number) => void;
+	pause: (cursor: ActionPath) => void;
 };

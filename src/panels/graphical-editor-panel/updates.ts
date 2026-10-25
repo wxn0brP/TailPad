@@ -1,48 +1,35 @@
-import { updateData } from "#api/internal/utils";
-import {
-	ActionConditionType,
-	ActionDialogChoiceType,
-	ActionRandomBranchType,
-} from "../../game/types";
+import { ActionPath } from "../../game/types";
+import { mutateList, updateAtPath } from "./path";
 
-export function updateField(index: number, key: string, value: any) {
-	updateData(d => {
-		d.sceneConfig[index][key] = value;
+export function updateField(path: ActionPath, key: string, value: any) {
+	updateAtPath(path, node => {
+		node[key] = value;
 	});
 }
 
-export function updateChoice(
-	actionIndex: number,
-	choiceIndex: number,
-	key: string,
-	value: any,
-) {
-	updateData(d => {
-		const action = d.sceneConfig[actionIndex] as ActionDialogChoiceType;
-		action.choices[choiceIndex][key] = value;
+export function insertItem(listPath: ActionPath, index: number, item: any) {
+	mutateList(listPath, list => list.splice(index, 0, item));
+}
+
+export function pushItem(listPath: ActionPath, item: any) {
+	mutateList(listPath, list => list.push(item));
+}
+
+export function removeItem(listPath: ActionPath, index: number) {
+	mutateList(listPath, list => list.splice(index, 1));
+}
+
+export function replaceItem(listPath: ActionPath, index: number, item: any) {
+	mutateList(listPath, list => {
+		list[index] = item;
 	});
 }
 
-export function updateConditionBranch(
-	actionIndex: number,
-	branchIndex: number,
-	key: string,
-	value: any,
-) {
-	updateData(d => {
-		const action = d.sceneConfig[actionIndex] as ActionConditionType;
-		(action.branches[branchIndex] as any)[key] = value;
-	});
-}
-
-export function updateRandomBranch(
-	actionIndex: number,
-	branchIndex: number,
-	key: string,
-	value: any,
-) {
-	updateData(d => {
-		const action = d.sceneConfig[actionIndex] as ActionRandomBranchType;
-		(action.branches[branchIndex] as any)[key] = value;
+export function moveItem(listPath: ActionPath, index: number, delta: number) {
+	mutateList(listPath, list => {
+		const target = index + delta;
+		if (target < 0 || target >= list.length) return;
+		const [item] = list.splice(index, 1);
+		list.splice(target, 0, item);
 	});
 }

@@ -1,12 +1,16 @@
 import type { MusicState } from "#game/audio";
 import type { SpriteState } from "#game/sprite";
+import type { ActionPath } from "#game/types";
 
 const SAVE_KEY = "tailpad-game-saves";
 const MAX_SAVES = 5;
 
 export interface SaveData {
 	sceneName: string;
-	lastIndex: number;
+	cursor?: ActionPath;
+	/** Legacy flat scene index, read only when cursor is missing. */
+	lastIndex?: number;
+	background?: string;
 	variables: Record<string, string | number | boolean>;
 	music?: MusicState | null;
 	characters?: SpriteState[];

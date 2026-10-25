@@ -1,3 +1,5 @@
+export type ActionPath = (string | number)[];
+
 export interface ActionBase {
 	name?: string;
 	noWaitForEnd?: true;
@@ -24,9 +26,13 @@ export interface ActionGoToSceneType extends ActionBase {
 	scene: string;
 }
 
-export interface Choice {
+export interface InlineCase {
+	actions?: Action[];
+	scene?: string;
+}
+
+export interface Choice extends InlineCase {
 	text: string;
-	scene: string;
 }
 
 export interface ActionDialogChoiceType extends ActionBase {
@@ -90,23 +96,24 @@ export interface ActionSetVariableType extends ActionBase {
 	operation?: "set" | "add" | "subtract" | "multiply" | "divide";
 }
 
-export interface ConditionBranch {
+export interface ConditionBranch extends InlineCase {
 	condition: string;
 	operator: "==" | "!=" | ">" | "<" | ">=" | "<=";
 	value: string | number | boolean;
-	scene: string;
 }
 
 export interface ActionConditionType extends ActionBase {
 	type: "condition";
-	branches: ConditionBranch[];
+	branches?: ConditionBranch[];
 	defaultScene?: string;
 	expression?: string;
 	scene?: string;
+	actions?: Action[];
+	elseActions?: Action[];
+	defaultActions?: Action[];
 }
 
-export interface RandomBranch {
-	scene: string;
+export interface RandomBranch extends InlineCase {
 	weight?: number;
 }
 
@@ -114,6 +121,7 @@ export interface ActionRandomBranchType extends ActionBase {
 	type: "random-branch";
 	branches: RandomBranch[];
 	defaultScene?: string;
+	defaultActions?: Action[];
 }
 
 export interface ActionEffectType extends ActionBase {

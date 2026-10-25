@@ -1,11 +1,13 @@
 import { client, root } from "#api/internal/state";
-import { save, updateData } from "#api/internal/utils";
+import { save } from "#api/internal/utils";
 import { undoManager } from "#panels/editor-panel";
 import { createPanel } from "#panels/createPanel";
-import { Action } from "../../game/types";
-import { ValidationIssue, validateSceneConfig } from "../../game/validate";
 import { uiMsg } from "@wxn0brp/flanker-dialog/msg/index";
-import { createActionNode } from "./action-node";
+import { Action, ActionPath } from "../../game/types";
+import { ValidationIssue, validateSceneConfig } from "../../game/validate";
+import { renderActionList } from "./action-list";
+import { setKnownScenes } from "./context";
+import { getSceneConfig, pathKey } from "./path";
 import "./style.scss";
 
 const panel = createPanel("Graphical Editor", ``, "graphical-editor-panel");
@@ -14,58 +16,61 @@ const container = panel.qs(".panel-content");
 let knownScenes: string[] = [];
 
 function renderGraphicalEditor() {
-	const data = root.get("data") as {
-		sceneConfig: Action[];
-	};
+	const actions = getSceneConfig() as Action[];
 	container.innerHTML = "";
+
+	setKnownScenes(knownScenes);
 
 	const editorContainer = document.createElement("div");
 	editorContainer.className = "graphical-editor-container";
 
-	const actions = data?.sceneConfig ?? [];
 	const issues = validateSceneConfig(actions, knownScenes);
 
 	editorContainer.appendChild(createSaveToolbar());
 	editorContainer.appendChild(createValidationSummary(issues));
+	editorContainer.appendChild(renderActionList([], actions));
 
-	const nodes: HTMLElement[] = [];
-	actions.forEach((action, index) => {
-		const node = createActionNode(action, index);
-		nodes.push(node);
-		editorContainer.appendChild(node);
-	});
-
-	const byIndex = new Map<number, ValidationIssue[]>();
+	const byPath = new Map<
+		string,
+		{
+			level: "error" | "warning";
+			messages: string[];
+			path: ActionPath;
+		}
+	>();
 	for (const issue of issues) {
-		const list = byIndex.get(issue.index) ?? [];
-		list.push(issue);
-		byIndex.set(issue.index, list);
+		const key = pathKey(issue.path);
+		const entry = byPath.get(key) ?? {
+			level: issue.level,
+			messages: [],
+			path: issue.path,
+		};
+		if (issue.level === "error") entry.level = "error";
+		entry.messages.push(issue.message);
+		byPath.set(key, entry);
 	}
-	for (const [index, list] of byIndex) {
-		const node = nodes[index];
+
+	const nodes = new Map<string, HTMLElement>();
+	editorContainer
+		.querySelectorAll<HTMLElement>("[data-path]")
+		.forEach(node => nodes.set(node.dataset.path ?? "", node));
+
+	for (const entry of byPath.values()) {
+		let node: HTMLElement | undefined;
+		for (let length = entry.path.length; length >= 0; length--) {
+			node = nodes.get(pathKey(entry.path.slice(0, length)));
+			if (node) break;
+		}
 		if (!node) continue;
-		node.classList.add(
-			list.some(i => i.level === "error") ? "has-error" : "has-warning",
-		);
-		node.title = list.map(i => i.message).join("\n");
+		node.classList.add(entry.level === "error" ? "has-error" : "has-warning");
+		node.title = [
+			node.title,
+			...entry.messages,
+		]
+			.filter(Boolean)
+			.join("\n");
 	}
 
-	const addButton = document.createElement("button");
-	addButton.textContent = "Add Action";
-	addButton.className = "add-action-btn";
-	addButton.addEventListener("click", () => {
-		updateData(d => {
-			if (!d.sceneConfig) {
-				d.sceneConfig = [];
-			}
-			d.sceneConfig.push({
-				type: "text",
-				text: "New action",
-			});
-		});
-	});
-
-	editorContainer.appendChild(addButton);
 	container.appendChild(editorContainer);
 }
 
@@ -135,6 +140,7 @@ function refreshKnownScenes() {
 	client.emit("scenes:list", res => {
 		if (res.err) return;
 		knownScenes = res.data;
+		setKnownScenes(knownScenes);
 		renderGraphicalEditor();
 	});
 }

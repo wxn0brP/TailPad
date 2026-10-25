@@ -24,11 +24,24 @@ async function loadScene(name: string) {
 	);
 	scene.sceneConfig = res;
 	scene.visitedScenes.add(name);
+	scene.cursor.set([
+		0,
+	]);
 	scene.dialogEngine.element.innerHTML = "";
 	scene.choicesContainer.innerHTML = "";
 }
 
-function restoreSceneState(index: number) {
+function legacyIndex(savedGame: SaveData) {
+	return savedGame.lastIndex ?? 0;
+}
+
+function restoreSceneState(savedGame: SaveData) {
+	if (savedGame.background !== undefined) {
+		if (savedGame.background) scene.setBackground(savedGame.background);
+		return;
+	}
+
+	const index = legacyIndex(savedGame);
 	for (let i = index; i >= 0; i--) {
 		const action = scene.sceneConfig[i];
 		if (action && action.type === "background") {
@@ -62,7 +75,8 @@ function restoreCharacters(savedGame: SaveData) {
 	}
 
 	const characters = new Map<string, SpriteState>();
-	for (let i = 0; i <= savedGame.lastIndex; i++) {
+	const index = legacyIndex(savedGame);
+	for (let i = 0; i <= index; i++) {
 		const action = scene.sceneConfig[i];
 		if (!action) continue;
 
@@ -90,7 +104,7 @@ async function startGame(savedGame?: SaveData) {
 
 	if (savedGame) {
 		await loadScene(savedGame.sceneName);
-		restoreSceneState(savedGame.lastIndex);
+		restoreSceneState(savedGame);
 		restoreCharacters(savedGame);
 		scene.variableManager.setAll(savedGame.variables ?? {});
 		if (savedGame.visitedScenes)
@@ -99,19 +113,29 @@ async function startGame(savedGame?: SaveData) {
 		await scene.audioEngine.restoreMusic(
 			savedGame.music !== undefined
 				? savedGame.music
-				: restoreMusicState(savedGame.lastIndex),
+				: restoreMusicState(legacyIndex(savedGame)),
 		);
 	} else {
 		const urlParams = new URLSearchParams(window.location.search);
 		await loadScene(urlParams.get("scene") || "master");
-		scene.lastIndex.set(-1);
+		scene.cursor.set([
+			0,
+		]);
 		scene.variableManager.clear();
 		await scene.audioEngine.stopMusic();
 	}
 
 	scene.pause.set(false);
-	if (savedGame) scene.runSceneAt(savedGame.lastIndex);
-	else scene.runSceneAt(0);
+	if (savedGame)
+		scene.runSceneAt(
+			savedGame.cursor ?? [
+				legacyIndex(savedGame),
+			],
+		);
+	else
+		scene.runSceneAt([
+			0,
+		]);
 }
 
 async function handleSave() {
@@ -120,7 +144,8 @@ async function handleSave() {
 	if (slot !== null) {
 		saveGameToSlot(slot, {
 			sceneName,
-			lastIndex: scene.lastIndex.get(),
+			cursor: scene.cursor.get(),
+			background: scene.background.getAttribute("src") ?? scene.background.src,
 			variables: scene.variableManager.getAll(),
 			music: scene.audioEngine.getMusicState(),
 			characters: scene.spriteEngine.getState(),
@@ -149,10 +174,20 @@ async function handleLoad() {
 }
 
 actionEmitter.on("go-to-scene", async (cb, action: any) => {
-	await loadScene(action.scene);
-	scene.lastIndex.set(-1);
-	scene.nextStep();
-	cb();
+	try {
+		scene.interrupt();
+		await loadScene(action.scene);
+		scene.cursor.set([
+			0,
+		]);
+		scene.runSceneAt([
+			0,
+		]);
+	} catch (error) {
+		console.error(error);
+	} finally {
+		cb();
+	}
 });
 
 const autoButton = qs<HTMLButtonElement>("#hud-auto");

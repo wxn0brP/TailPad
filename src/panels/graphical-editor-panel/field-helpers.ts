@@ -1,3 +1,5 @@
+import { getKnownScenes } from "./context";
+
 export function createField(label: string, input: HTMLElement) {
 	const field = document.createElement("div");
 	field.className = "field";
@@ -44,6 +46,21 @@ export function createTextField(
 	return createField(key, input);
 }
 
+export function createTextareaField(
+	key: string,
+	value: string,
+	onChange: (value: string) => void,
+) {
+	const textarea = document.createElement("textarea");
+	textarea.className = "field-textarea";
+	textarea.value = value || "";
+	textarea.rows = 2;
+	textarea.addEventListener("change", e =>
+		onChange((e.target as HTMLTextAreaElement).value),
+	);
+	return createField(key, textarea);
+}
+
 export function createNumberField(
 	key: string,
 	value: number,
@@ -70,4 +87,34 @@ export function createBooleanField(
 		onChange((e.target as HTMLInputElement).checked),
 	);
 	return createField(key, input);
+}
+
+let datalistId = 0;
+
+export function createSceneField(
+	key: string,
+	value: string,
+	onChange: (value: string) => void,
+) {
+	const input = document.createElement("input");
+	input.type = "text";
+	input.value = value || "";
+	const listId = `scene-options-${++datalistId}`;
+	input.setAttribute("list", listId);
+
+	const datalist = document.createElement("datalist");
+	datalist.id = listId;
+	for (const scene of getKnownScenes()) {
+		const option = document.createElement("option");
+		option.value = scene;
+		datalist.appendChild(option);
+	}
+
+	input.addEventListener("change", e =>
+		onChange((e.target as HTMLInputElement).value),
+	);
+
+	const field = createField(key, input);
+	field.appendChild(datalist);
+	return field;
 }

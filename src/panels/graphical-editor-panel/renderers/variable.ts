@@ -1,4 +1,8 @@
-import { createSelectField, createTextField } from "../field-helpers";
+import {
+	createSelectField,
+	createTextareaField,
+	createTextField,
+} from "../field-helpers";
 import { updateField } from "../updates";
 import { ActionRenderer } from "./types";
 
@@ -10,9 +14,13 @@ function parseValue(raw: string): string | number | boolean {
 	return raw;
 }
 
-export const renderVariable: ActionRenderer = (content, action, index) => {
+export const renderVariable: ActionRenderer = (content, action, ctx) => {
 	if (action.type !== "set-variable") return;
+	const { path } = ctx;
 
+	content.appendChild(
+		createTextField("name", action.name, v => updateField(path, "name", v)),
+	);
 	content.appendChild(
 		createSelectField(
 			"operation",
@@ -24,12 +32,12 @@ export const renderVariable: ActionRenderer = (content, action, index) => {
 				"multiply",
 				"divide",
 			],
-			v => updateField(index, "operation", v),
+			v => updateField(path, "operation", v),
 		),
 	);
 	content.appendChild(
-		createTextField("value", String(action.value ?? ""), v =>
-			updateField(index, "value", parseValue(v)),
+		createTextareaField("value", String(action.value ?? ""), v =>
+			updateField(path, "value", parseValue(v)),
 		),
 	);
 };

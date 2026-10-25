@@ -1,64 +1,64 @@
-import { updateData } from "#api/internal/utils";
+import { createNumberField } from "../field-helpers";
+import { pushItem, removeItem, updateField } from "../updates";
 import { ActionRandomBranchType } from "../../../game/types";
-import { createNumberField, createTextField } from "../field-helpers";
-import { updateField, updateRandomBranch } from "../updates";
+import { createButton, createCaseCard, element } from "./case-ui";
 import { ActionRenderer } from "./types";
 
-export const renderRandomBranch: ActionRenderer = (content, action, index) => {
+export const renderRandomBranch: ActionRenderer = (content, action, ctx) => {
 	if (action.type !== "random-branch") return;
+	const { path, renderList } = ctx;
+	const random = action as ActionRandomBranchType;
 
-	const branchesContainer = document.createElement("div");
-	branchesContainer.className = "branches-container";
+	const branchesPath = [
+		...path,
+		"branches",
+	];
+	const list = element("div", "case-list");
 
-	(action.branches ?? []).forEach((branch, branchIndex) => {
-		const branchContainer = document.createElement("div");
-		branchContainer.className = "branch-container";
-
-		const fields = document.createElement("div");
-		fields.className = "branch-fields";
-		fields.appendChild(
-			createTextField("scene", branch.scene, v =>
-				updateRandomBranch(index, branchIndex, "scene", v),
-			),
+	(random.branches ?? []).forEach((branch, index) => {
+		const branchPath = [
+			...branchesPath,
+			index,
+		];
+		list.appendChild(
+			createCaseCard({
+				title: `Case ${index + 1}`,
+				casePath: branchPath,
+				inlineCase: branch,
+				renderList,
+				onDelete: () => removeItem(branchesPath, index),
+				fields: [
+					createNumberField("weight", branch.weight ?? 1, value =>
+						updateField(branchPath, "weight", value),
+					),
+				],
+			}),
 		);
-		fields.appendChild(
-			createNumberField("weight", branch.weight ?? 1, v =>
-				updateRandomBranch(index, branchIndex, "weight", v),
-			),
-		);
-		branchContainer.appendChild(fields);
-
-		const deleteBranchButton = document.createElement("button");
-		deleteBranchButton.textContent = "Delete";
-		deleteBranchButton.className = "node-btn delete-btn";
-		deleteBranchButton.addEventListener("click", () => {
-			updateData(d => {
-				const action = d.sceneConfig[index] as ActionRandomBranchType;
-				action.branches.splice(branchIndex, 1);
-			});
-		});
-		branchContainer.appendChild(deleteBranchButton);
-		branchesContainer.appendChild(branchContainer);
 	});
 
-	const addBranchButton = document.createElement("button");
-	addBranchButton.textContent = "Add Branch";
-	addBranchButton.className = "add-branch-btn";
-	addBranchButton.addEventListener("click", () => {
-		updateData(d => {
-			const action = d.sceneConfig[index] as ActionRandomBranchType;
-			action.branches.push({
-				scene: "",
-				weight: 1,
-			});
-		});
-	});
-	branchesContainer.appendChild(addBranchButton);
+	const addButton = createButton("Add case", "add-branch-btn");
+	addButton.addEventListener("click", () =>
+		pushItem(branchesPath, {
+			weight: 1,
+		}),
+	);
+	list.appendChild(addButton);
+	content.appendChild(list);
 
-	content.appendChild(branchesContainer);
 	content.appendChild(
-		createTextField("defaultScene", action.defaultScene ?? "", v =>
-			updateField(index, "defaultScene", v),
-		),
+		createCaseCard({
+			title: "Default",
+			casePath: path,
+			inlineCase: {
+				actions: random.defaultActions,
+				scene: random.defaultScene,
+			},
+			actionsPath: [
+				...path,
+				"defaultActions",
+			],
+			sceneKey: "defaultScene",
+			renderList,
+		}),
 	);
 };

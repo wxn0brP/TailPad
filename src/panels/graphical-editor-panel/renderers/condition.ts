@@ -1,103 +1,147 @@
-import { updateData } from "#api/internal/utils";
-import { ActionConditionType } from "../../../game/types";
 import { createSelectField, createTextField } from "../field-helpers";
-import { updateConditionBranch, updateField } from "../updates";
+import { pushItem, removeItem, updateField } from "../updates";
+import { ActionConditionType } from "../../../game/types";
+import { createButton, createCaseCard, element } from "./case-ui";
 import { ActionRenderer } from "./types";
 
-export const renderCondition: ActionRenderer = (content, action, index) => {
+function parseValue(raw: string): string | number | boolean {
+	const trimmed = raw.trim();
+	if (trimmed === "true") return true;
+	if (trimmed === "false") return false;
+	if (trimmed !== "" && !Number.isNaN(Number(trimmed))) return Number(trimmed);
+	return raw;
+}
+
+export const renderCondition: ActionRenderer = (content, action, ctx) => {
 	if (action.type !== "condition") return;
+	const { path, renderList } = ctx;
+	const condition = action as ActionConditionType;
+	const mode = condition.expression?.trim() ? "expression" : "rules";
 
 	content.appendChild(
-		createTextField("expression", action.expression ?? "", v =>
-			updateField(index, "expression", v),
+		createSelectField(
+			"mode",
+			mode,
+			[
+				"rules",
+				"expression",
+			],
+			value => {
+				if (value === "expression")
+					updateField(path, "expression", condition.expression || "true");
+				else updateField(path, "expression", "");
+			},
 		),
 	);
-	content.appendChild(
-		createTextField("scene", action.scene ?? "", v =>
-			updateField(index, "scene", v),
-		),
-	);
-	const branchesContainer = document.createElement("div");
-	branchesContainer.className = "branches-container";
 
-	(action.branches ?? []).forEach((branch, branchIndex) => {
-		const branchContainer = document.createElement("div");
-		branchContainer.className = "branch-container";
-
-		const fields = document.createElement("div");
-		fields.className = "branch-fields";
-		fields.appendChild(
-			createTextField("condition", branch.condition, v =>
-				updateConditionBranch(index, branchIndex, "condition", v),
+	if (mode === "expression") {
+		content.appendChild(
+			createTextField("expression", condition.expression ?? "", value =>
+				updateField(path, "expression", value),
 			),
 		);
-		fields.appendChild(
-			createSelectField(
-				"operator",
-				branch.operator,
-				[
-					"==",
-					"!=",
-					">",
-					"<",
-					">=",
-					"<=",
+		content.appendChild(
+			createCaseCard({
+				title: "When true",
+				casePath: path,
+				inlineCase: {
+					actions: condition.actions,
+					scene: condition.scene,
+				},
+				actionsPath: [
+					...path,
+					"actions",
 				],
-				v => updateConditionBranch(index, branchIndex, "operator", v),
-			),
-		);
-		fields.appendChild(
-			createTextField("value", String(branch.value), v => {
-				const numValue = Number(v);
-				const boolValue = v === "true" ? true : v === "false" ? false : v;
-				updateConditionBranch(
-					index,
-					branchIndex,
-					"value",
-					Number.isNaN(numValue) ? boolValue : numValue,
-				);
+				renderList,
 			}),
 		);
-		fields.appendChild(
-			createTextField("scene", branch.scene, v =>
-				updateConditionBranch(index, branchIndex, "scene", v),
-			),
+		content.appendChild(
+			createCaseCard({
+				title: "Otherwise",
+				casePath: path,
+				inlineCase: {
+					actions: condition.elseActions,
+					scene: condition.defaultScene,
+				},
+				actionsPath: [
+					...path,
+					"elseActions",
+				],
+				sceneKey: "defaultScene",
+				renderList,
+			}),
 		);
-		branchContainer.appendChild(fields);
+		return;
+	}
 
-		const deleteBranchButton = document.createElement("button");
-		deleteBranchButton.textContent = "Delete";
-		deleteBranchButton.className = "node-btn delete-btn";
-		deleteBranchButton.addEventListener("click", () => {
-			updateData(d => {
-				const action = d.sceneConfig[index] as ActionConditionType;
-				action.branches.splice(branchIndex, 1);
-			});
-		});
-		branchContainer.appendChild(deleteBranchButton);
-		branchesContainer.appendChild(branchContainer);
+	const branchesPath = [
+		...path,
+		"branches",
+	];
+	const list = element("div", "case-list");
+
+	(condition.branches ?? []).forEach((branch, index) => {
+		const branchPath = [
+			...branchesPath,
+			index,
+		];
+		list.appendChild(
+			createCaseCard({
+				title: `Rule ${index + 1}`,
+				casePath: branchPath,
+				inlineCase: branch,
+				renderList,
+				onDelete: () => removeItem(branchesPath, index),
+				fields: [
+					createTextField("variable", branch.condition, value =>
+						updateField(branchPath, "condition", value),
+					),
+					createSelectField(
+						"operator",
+						branch.operator,
+						[
+							"==",
+							"!=",
+							">",
+							"<",
+							">=",
+							"<=",
+						],
+						value => updateField(branchPath, "operator", value),
+					),
+					createTextField("value", String(branch.value ?? ""), value =>
+						updateField(branchPath, "value", parseValue(value)),
+					),
+				],
+			}),
+		);
 	});
 
-	const addBranchButton = document.createElement("button");
-	addBranchButton.textContent = "Add Branch";
-	addBranchButton.className = "add-branch-btn";
-	addBranchButton.addEventListener("click", () => {
-		updateData(d => {
-			const action = d.sceneConfig[index] as ActionConditionType;
-			action.branches.push({
-				condition: "",
-				operator: "==",
-				value: "",
-				scene: "",
-			});
-		});
-	});
-	branchesContainer.appendChild(addBranchButton);
+	const addButton = createButton("Add rule", "add-branch-btn");
+	addButton.addEventListener("click", () =>
+		pushItem(branchesPath, {
+			condition: "",
+			operator: "==",
+			value: "",
+		}),
+	);
+	list.appendChild(addButton);
+	content.appendChild(list);
 
-	content.appendChild(branchesContainer);
 	content.appendChild(
-		createTextField("defaultScene", action.defaultScene ?? "", v =>
-			updateField(index, "defaultScene", v),
-		),
+		createCaseCard({
+			title: "Default",
+			casePath: path,
+			inlineCase: {
+				actions: condition.defaultActions,
+				scene: condition.defaultScene,
+			},
+			actionsPath: [
+				...path,
+				"defaultActions",
+			],
+			sceneKey: "defaultScene",
+			renderList,
+		}),
 	);
 };

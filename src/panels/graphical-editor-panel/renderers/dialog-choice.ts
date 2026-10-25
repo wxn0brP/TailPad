@@ -1,62 +1,49 @@
-import { updateData } from "#api/internal/utils";
-import { ActionDialogChoiceType } from "../../../game/types";
-import { createTextField } from "../field-helpers";
-import { updateChoice, updateField } from "../updates";
+import { createTextareaField } from "../field-helpers";
+import { pushItem, removeItem, updateField } from "../updates";
+import { createButton, createCaseCard, element } from "./case-ui";
 import { ActionRenderer } from "./types";
 
-export const renderDialogChoice: ActionRenderer = (content, action, index) => {
+export const renderDialogChoice: ActionRenderer = (content, action, ctx) => {
 	if (action.type !== "dialog-choice") return;
+	const { path, renderList } = ctx;
 
 	content.appendChild(
-		createTextField("text", action.text, v => updateField(index, "text", v)),
+		createTextareaField("text", action.text, v => updateField(path, "text", v)),
 	);
-	const choicesContainer = document.createElement("div");
-	choicesContainer.className = "choices-container";
 
-	(action.choices ?? []).forEach((choice, choiceIndex) => {
-		const choiceContainer = document.createElement("div");
-		choiceContainer.className = "choice-container";
+	const choicesPath = [
+		...path,
+		"choices",
+	];
+	const list = element("div", "case-list");
 
-		const fields = document.createElement("div");
-		fields.className = "choice-fields";
-		fields.appendChild(
-			createTextField("text", choice.text, v =>
-				updateChoice(index, choiceIndex, "text", v),
-			),
+	(action.choices ?? []).forEach((choice, index) => {
+		const casePath = [
+			...choicesPath,
+			index,
+		];
+		list.appendChild(
+			createCaseCard({
+				title: `Choice ${index + 1}`,
+				casePath,
+				inlineCase: choice,
+				renderList,
+				onDelete: () => removeItem(choicesPath, index),
+				fields: [
+					createTextareaField("text", choice.text, v =>
+						updateField(casePath, "text", v),
+					),
+				],
+			}),
 		);
-		fields.appendChild(
-			createTextField("scene", choice.scene, v =>
-				updateChoice(index, choiceIndex, "scene", v),
-			),
-		);
-		choiceContainer.appendChild(fields);
-
-		const deleteChoiceButton = document.createElement("button");
-		deleteChoiceButton.textContent = "Delete";
-		deleteChoiceButton.className = "node-btn delete-btn";
-		deleteChoiceButton.addEventListener("click", () => {
-			updateData(d => {
-				const action = d.sceneConfig[index] as ActionDialogChoiceType;
-				action.choices.splice(choiceIndex, 1);
-			});
-		});
-		choiceContainer.appendChild(deleteChoiceButton);
-		choicesContainer.appendChild(choiceContainer);
 	});
 
-	const addChoiceButton = document.createElement("button");
-	addChoiceButton.textContent = "Add Choice";
-	addChoiceButton.className = "add-choice-btn";
-	addChoiceButton.addEventListener("click", () => {
-		updateData(d => {
-			const action = d.sceneConfig[index] as ActionDialogChoiceType;
-			action.choices.push({
-				text: "",
-				scene: "",
-			});
-		});
-	});
-	choicesContainer.appendChild(addChoiceButton);
-
-	content.appendChild(choicesContainer);
+	const addButton = createButton("Add choice", "add-branch-btn");
+	addButton.addEventListener("click", () =>
+		pushItem(choicesPath, {
+			text: "",
+		}),
+	);
+	list.appendChild(addButton);
+	content.appendChild(list);
 };

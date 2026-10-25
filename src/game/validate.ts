@@ -1,176 +1,320 @@
-import {
+import type {
 	Action,
 	ActionConditionType,
 	ActionDialogChoiceType,
+	ActionPath,
 	ActionRandomBranchType,
+	InlineCase,
 } from "./types";
 
 export interface ValidationIssue {
 	level: "error" | "warning";
-	index: number;
+	path: ActionPath;
 	message: string;
 }
 
-function collectTargetScenes(action: Action): string[] {
-	switch (action.type) {
-		case "go-to-scene":
-			return [
-				action.scene,
-			];
-		case "dialog-choice":
-			return (action as ActionDialogChoiceType).choices.map(c => c.scene);
-		case "condition": {
-			const cond = action as ActionConditionType;
-			const targets = (cond.branches ?? []).map(b => b.scene);
-			if (cond.defaultScene) targets.push(cond.defaultScene);
-			if (cond.scene) targets.push(cond.scene);
-			return targets;
-		}
-		case "random-branch": {
-			const random = action as ActionRandomBranchType;
-			const targets = (random.branches ?? []).map(b => b.scene);
-			if (random.defaultScene) targets.push(random.defaultScene);
-			return targets;
-		}
-		default:
-			return [];
-	}
+const MAX_DEPTH = 8;
+
+interface ValidateContext {
+	knownScenes: string[];
+	issues: ValidationIssue[];
 }
 
-function reachableIndices(config: Action[]): Set<number> {
-	const reachable = new Set<number>();
-	const queue: number[] = [
-		0,
-	];
+function issue(
+	ctx: ValidateContext,
+	level: "error" | "warning",
+	path: ActionPath,
+	message: string,
+) {
+	ctx.issues.push({
+		level,
+		path,
+		message,
+	});
+}
 
-	while (queue.length) {
-		const index = queue.pop()!;
-		if (index < 0 || index >= config.length) continue;
-		if (reachable.has(index)) continue;
-		reachable.add(index);
+function checkSceneRef(
+	ctx: ValidateContext,
+	scene: string | undefined,
+	path: ActionPath,
+	required: boolean,
+) {
+	if (!scene) {
+		if (required) issue(ctx, "error", path, "Scene reference is empty");
+		return;
+	}
+	if (ctx.knownScenes.length && !ctx.knownScenes.includes(scene))
+		issue(ctx, "error", path, `Unknown scene "${scene}"`);
+}
 
-		const action = config[index];
-		if (action?.type === "go-to-scene") continue;
-		queue.push(index + 1);
+function walkCase(
+	ctx: ValidateContext,
+	inlineCase: InlineCase | undefined,
+	actionsPath: ActionPath,
+	scenePath: ActionPath,
+	depth: number,
+) {
+	if (!inlineCase) return;
+	checkSceneRef(ctx, inlineCase.scene, scenePath, false);
+	if (inlineCase.actions?.length)
+		walkActions(ctx, inlineCase.actions, actionsPath, depth + 1);
+}
+
+function walkActions(
+	ctx: ValidateContext,
+	actions: Action[],
+	basePath: ActionPath,
+	depth: number,
+) {
+	if (depth > MAX_DEPTH) return;
+
+	let reachedEnd = false;
+
+	actions.forEach((action, index) => {
+		const path: ActionPath = [
+			...basePath,
+			index,
+		];
+		if (!action) return;
+		if (reachedEnd) {
+			issue(ctx, "warning", path, "Unreachable action after go-to-scene");
+			return;
+		}
+
+		if (action.noWaitForEnd && isBranch(action))
+			issue(
+				ctx,
+				"warning",
+				path,
+				"noWaitForEnd is not supported on branch actions",
+			);
+
+		switch (action.type) {
+			case "go-to-scene":
+				checkSceneRef(ctx, action.scene, path, true);
+				reachedEnd = true;
+				return;
+			case "text":
+				if (!(action.text ?? "").trim())
+					issue(ctx, "warning", path, "Empty text");
+				return;
+			case "background":
+				if (!action.url) issue(ctx, "warning", path, "Background url is empty");
+				return;
+			case "delay":
+				if (action.ms <= 0)
+					issue(ctx, "warning", path, "Delay must be greater than 0");
+				return;
+			case "play-music":
+				if (!action.url) issue(ctx, "warning", path, "Music url is empty");
+				return;
+			case "play-sound":
+				if (!action.url) issue(ctx, "warning", path, "Sound url is empty");
+				return;
+			case "show-character":
+				if (!action.id) issue(ctx, "warning", path, "Missing id");
+				if (!action.url) issue(ctx, "warning", path, "Sprite url is empty");
+				return;
+			case "hide-character":
+			case "move-character":
+				if (!action.id) issue(ctx, "warning", path, "Missing id");
+				return;
+			case "set-variable":
+				if (!action.name) issue(ctx, "warning", path, "Variable name is empty");
+				return;
+			case "dialog-choice":
+				walkDialogChoice(ctx, action, path, depth);
+				return;
+			case "condition":
+				walkCondition(ctx, action, path, depth);
+				return;
+			case "random-branch":
+				walkRandomBranch(ctx, action, path, depth);
+				return;
+		}
+	});
+}
+
+function walkDialogChoice(
+	ctx: ValidateContext,
+	action: ActionDialogChoiceType,
+	path: ActionPath,
+	depth: number,
+) {
+	const choices = action.choices ?? [];
+	if (!choices.length) issue(ctx, "warning", path, "No choices defined");
+
+	choices.forEach((choice, index) => {
+		const choicePath: ActionPath = [
+			...path,
+			"choices",
+			index,
+		];
+		const actionsPath: ActionPath = [
+			...choicePath,
+			"actions",
+		];
+		if (!choice.text) issue(ctx, "warning", choicePath, "Choice text is empty");
+		if (!choice.actions?.length && !choice.scene)
+			issue(
+				ctx,
+				"warning",
+				choicePath,
+				"Choice has no actions or scene (merges immediately)",
+			);
+		walkCase(ctx, choice, actionsPath, choicePath, depth);
+	});
+
+	if (depth >= MAX_DEPTH) issue(ctx, "warning", path, "Nesting is too deep");
+}
+
+function walkCondition(
+	ctx: ValidateContext,
+	action: ActionConditionType,
+	path: ActionPath,
+	depth: number,
+) {
+	if (action.expression?.trim()) {
+		walkCase(
+			ctx,
+			{
+				actions: action.actions,
+				scene: action.scene,
+			},
+			[
+				...path,
+				"actions",
+			],
+			path,
+			depth,
+		);
+		walkCase(
+			ctx,
+			{
+				actions: action.elseActions,
+				scene: action.defaultScene,
+			},
+			[
+				...path,
+				"elseActions",
+			],
+			path,
+			depth,
+		);
+	} else {
+		const branches = action.branches ?? [];
+		if (
+			!branches.length &&
+			!action.defaultActions?.length &&
+			!action.defaultScene
+		)
+			issue(ctx, "warning", path, "No branches defined");
+
+		branches.forEach((branch, index) => {
+			const branchPath: ActionPath = [
+				...path,
+				"branches",
+				index,
+			];
+			walkCase(
+				ctx,
+				branch,
+				[
+					...branchPath,
+					"actions",
+				],
+				branchPath,
+				depth,
+			);
+		});
+
+		walkCase(
+			ctx,
+			{
+				actions: action.defaultActions,
+				scene: action.defaultScene,
+			},
+			[
+				...path,
+				"defaultActions",
+			],
+			path,
+			depth,
+		);
 	}
 
-	return reachable;
+	if (depth >= MAX_DEPTH) issue(ctx, "warning", path, "Nesting is too deep");
+}
+
+function walkRandomBranch(
+	ctx: ValidateContext,
+	action: ActionRandomBranchType,
+	path: ActionPath,
+	depth: number,
+) {
+	const branches = action.branches ?? [];
+	if (
+		!branches.length &&
+		!action.defaultActions?.length &&
+		!action.defaultScene
+	)
+		issue(ctx, "warning", path, "No branches defined");
+
+	branches.forEach((branch, index) => {
+		if ((branch.weight ?? 1) <= 0)
+			issue(ctx, "warning", path, "Branch weight must be greater than 0");
+		const branchPath: ActionPath = [
+			...path,
+			"branches",
+			index,
+		];
+		walkCase(
+			ctx,
+			branch,
+			[
+				...branchPath,
+				"actions",
+			],
+			branchPath,
+			depth,
+		);
+	});
+
+	walkCase(
+		ctx,
+		{
+			actions: action.defaultActions,
+			scene: action.defaultScene,
+		},
+		[
+			...path,
+			"defaultActions",
+		],
+		path,
+		depth,
+	);
+
+	if (depth >= MAX_DEPTH) issue(ctx, "warning", path, "Nesting is too deep");
+}
+
+function isBranch(action: Action) {
+	return (
+		action.type === "dialog-choice" ||
+		action.type === "condition" ||
+		action.type === "random-branch"
+	);
 }
 
 export function validateSceneConfig(
 	config: Action[],
 	knownScenes: string[] = [],
 ): ValidationIssue[] {
-	const issues: ValidationIssue[] = [];
-	if (!config?.length) return issues;
+	const ctx: ValidateContext = {
+		knownScenes,
+		issues: [],
+	};
+	if (!config?.length) return ctx.issues;
 
-	const hasKnownScenes = knownScenes.length > 0;
-	const sceneExists = (scene: string) =>
-		!hasKnownScenes || knownScenes.includes(scene);
-
-	config.forEach((action, index) => {
-		if (!action) return;
-
-		for (const target of collectTargetScenes(action)) {
-			if (!target) {
-				issues.push({
-					level: "error",
-					index,
-					message: "Scene reference is empty",
-				});
-			} else if (!sceneExists(target)) {
-				issues.push({
-					level: "error",
-					index,
-					message: `Unknown scene "${target}"`,
-				});
-			}
-		}
-
-		switch (action.type) {
-			case "text":
-				if (!(action.text ?? "").trim())
-					issues.push({
-						level: "warning",
-						index,
-						message: "Empty text",
-					});
-				break;
-			case "background":
-				if (!action.url)
-					issues.push({
-						level: "warning",
-						index,
-						message: "Background url is empty",
-					});
-				break;
-			case "delay":
-				if (action.ms <= 0)
-					issues.push({
-						level: "warning",
-						index,
-						message: "Delay must be greater than 0",
-					});
-				break;
-			case "dialog-choice":
-				if (!(action as ActionDialogChoiceType).choices.length)
-					issues.push({
-						level: "warning",
-						index,
-						message: "No choices defined",
-					});
-				break;
-			case "play-music":
-				if (!action.url)
-					issues.push({
-						level: "warning",
-						index,
-						message: "Music url is empty",
-					});
-				break;
-			case "play-sound":
-				if (!action.url)
-					issues.push({
-						level: "warning",
-						index,
-						message: "Sound url is empty",
-					});
-				break;
-			case "show-character":
-				if (!action.id)
-					issues.push({
-						level: "warning",
-						index,
-						message: "Missing id",
-					});
-				if (!action.url)
-					issues.push({
-						level: "warning",
-						index,
-						message: "Sprite url is empty",
-					});
-				break;
-			case "hide-character":
-			case "move-character":
-				if (!action.id)
-					issues.push({
-						level: "warning",
-						index,
-						message: "Missing id",
-					});
-				break;
-		}
-	});
-
-	const reachable = reachableIndices(config);
-	config.forEach((_, index) => {
-		if (!reachable.has(index))
-			issues.push({
-				level: "warning",
-				index,
-				message: "Unreachable action",
-			});
-	});
-
-	return issues;
+	walkActions(ctx, config, [], 0);
+	return ctx.issues;
 }

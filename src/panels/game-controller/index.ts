@@ -1,6 +1,7 @@
 import { mainScene } from "#panels/game";
 import { createPanel } from "#panels/createPanel";
 import { watchCheckbox } from "@wxn0brp/flanker-ui/component/helpers";
+import { ActionPath } from "#game/types";
 
 const panel = createPanel(
 	"Game controller",
@@ -10,8 +11,8 @@ const panel = createPanel(
         <br>
         <br>
         <label>
-            Scene index:
-            <input data-id="scene-index" type="number" value="-1">
+            Cursor:
+            <input data-id="scene-index" type="text" value="0">
         </label>
         <br>
         <label>
@@ -30,19 +31,38 @@ panel.qs("reset-step", 1).addEventListener("click", () => {
 	mainScene.background.src = "";
 	mainScene.dialogEngine.element.innerHTML = "";
 	mainScene.variableManager.clear();
-	mainScene.eventEmitter.emit("run-scene", 0);
+	mainScene.beginSession(true);
+	mainScene.stepOnce = true;
+	mainScene.eventEmitter.emit(
+		"run-scene",
+		[
+			0,
+		],
+	);
 });
 
 const sceneIndexInput = panel.qi("scene-index", 1);
 
-sceneIndexInput.addEventListener("input", () => {
-	mainScene.eventEmitter.emit("run-scene", sceneIndexInput.valueAsNumber);
+function parseCursor(raw: string): ActionPath {
+	return raw
+		.split(".")
+		.map(part => part.trim())
+		.filter(Boolean)
+		.map(part => (/^\d+$/.test(part) ? Number(part) : part));
+}
+
+sceneIndexInput.addEventListener("change", () => {
+	const cursor = parseCursor(sceneIndexInput.value);
+	if (!cursor.length) return;
+	mainScene.runSceneAt(cursor);
 });
 
-mainScene.lastIndex.subscribe(index => {
-	sceneIndexInput.valueAsNumber = index;
+mainScene.cursor.subscribe(cursor => {
+	sceneIndexInput.value = cursor.join(".");
 });
 
 watchCheckbox(panel.qi("pause", 1), mainScene.pause);
 mainScene.pause.set(true);
-mainScene.lastIndex.set(-1);
+mainScene.cursor.set([
+	0,
+]);
